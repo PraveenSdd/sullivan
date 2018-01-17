@@ -1,0 +1,44 @@
+body { background-color: #fff !important; }
+.custom-s-modal { background-color: #fff; /* height: 100%; */ overflow-y: auto; width: 100%; z-index: 9999; }
+.custom-s-modal .s-header { float: left; margin-bottom: 15px; padding-bottom: 10px; width: 100%; border-bottom: 1px solid #ccc; padding-left: 10px;
+    padding-right: 10px;}
+.custom-s-modal .s-body { float: left; margin-bottom: 30px; padding-bottom: 20px; width: 100%; border-bottom: 1px solid #ccc; padding-left: 10px;
+    padding-right: 10px; }
+.custom-s-modal .s-footer { float: left; margin-bottom: 10px; width: 100%; }
+.s-title { float: left; font-size: 25px; width: 94%; color: #125fa0; word-wrap: break-word; }
+.s-close { float: right; font-size: 27px; }
+.custom-s-modal { display: none; }
+.add_post_icon { font-size: 15px; cursor: pointer; }
+.close-s-modal { cursor: pointer; color: #aaa; }
+.overflowauto { overflow: hidden !important; }
+.wzoverlay { background-color: #000; height: 100%; left: 0; opacity: 0.7; position: fixed; top: 0; width: 100%; z-index: 9998; }
+
+.wzwrapper { display: inline-block;text-align: left;width: 50%; background-color: #fff; padding: 15px; box-shadow: 0 3px 9px rgba(0, 0, 0, 0.5); border-radius: 10px; }
+.custom-s-modal.wz-inline-modal { background-color: transparent; text-align: center; }
+
+.wz-full-page-modal { left: 0; top: 0; right: 0; /* bottom: 0; */ height: 100%; position: fixed; padding: 20px; }
+.wz-inline-modal { position: fixed; top: 10%; }
+.wz-inleft-modal { bottom: 0; left: 0; position: fixed; top: 0; width: 40%; padding: 15px; }
+.wz-inright-modal { bottom: 0; right: 0; position: fixed; top: 0; width: 40%; padding: 15px; }
+.wz-intop-modal { right: 0; left: 0; position: fixed; top: 0; height: 40%; padding: 15px; }
+.wz-inbottom-modal { bottom: 0; left: 0; position: fixed; right: 0; height: 40%; padding: 15px; }
+
+/* additional */
+.hidden{display: none !important;}
+.attachment-view-content{height: 78%;}
+
+.btn-warning.green_btn{background: #2f89d9 none repeat scroll 0 0;
+    border: 1px solid #1b6cb3;
+    border-radius: 3px;
+    color: #fff;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: lighter;
+    padding: 5px 15px;}
+.txt-desc .txt-desc-left, .txt-desc .txt-desc-right, .txt-desc .txt-desc-full{font-size: 14px;text-decoration: none; line-height: 1.3;}
+.txt-desc a{text-decoration: none;}
+.txt-desc .txt-desc-left{float: left}
+.txt-desc .txt-desc-right{float: right}
+.padding-right-15{padding-right: 15px;}
+.tran-log-head{font-size: 15px;}
+.txt-desc a{color: #125fa0;}

@@ -1,0 +1,99 @@
+    .error-message{margin-top: 3px;}
+    .authError,
+    .group label.authError, .error-message,
+    .empety ~ label.authError, 
+    .no-required ~ label.authError,
+    .required ~ label.authError, 
+    .email ~ label.authError, 
+    .number ~ label.authError, 
+    .usphone ~ label.authError, 
+    .datemask ~ label.authError, 
+    .group-error label.authError,
+    div.error
+    [data-target-value="checkbox"] label.error, 
+    .check_required label.authError,
+    .radio_required label.authError{
+        font-size: 12px;    
+        font-weight: normal;
+        font-family: sans-serif;
+        color: #d9534f!important;
+        color: red;
+        margin-left: 0px;
+        position: relative;
+        margin-left: 0px;
+        animation:errormsg 500ms linear;
+        -webkit-animation:errormsg 500ms linear;
+    }
+    
+    
+    .button-form-sub{
+        margin-left:160px
+    }
+    textarea{
+        resize: none;
+    }
+    
+    .select2 .selection .select2-selection.select2-selection--single {
+    border-radius: 0px;
+    height: 34px;
+    padding-left: 0;
+    border-color: #ccc;
+}
+
+.navbar-nav > .user-menu > .dropdown-menu{
+    width: 130px!important;
+}
+
+.margin-bottom-5 {
+    margin-bottom: 5px;
+}
+.margin-bottom-10 {
+    margin-bottom: 10px;
+}
+.margin-bottom-15 {
+    margin-bottom: 15px;
+}
+.margin-bottom-20 {
+    margin-bottom: 20px;
+}
+.margin-top-5 {
+    margin-top: 5px;
+}
+.margin-top-10 {
+    margin-top: 10px;
+}
+.margin-top-15 {
+    margin-top: 15px;
+}
+.margin-top-20 {
+    margin-top: 20px;
+}
+
+
+.padding-bottom-5 {
+    padding-bottom: 5px;
+}
+.padding-bottom-10 {
+    padding-bottom: 10px;
+}
+.padding-bottom-15 {
+    padding-bottom: 15px;
+}
+.padding-bottom-20 {
+    padding-bottom: 20px;
+}
+.padding-top-5 {
+    padding-top: 5px;
+}
+.padding-top-10 {
+    padding-top: 10px;
+}
+.padding-top-15 {
+    padding-top: 15px;
+}
+.padding-top-20 {
+    padding-top: 20px;
+}
+
+thead tr { background: #337ab7 none repeat scroll 0 0; color: #ffffff; }
+thead tr th a { color: #ffffff; }

@@ -1,0 +1,247 @@
+.error-message{margin-top: 3px;}
+.authError,
+.group label.authError, .error-message,
+.empety ~ label.authError, 
+.no-required ~ label.authError,
+.required ~ label.authError, 
+.email ~ label.authError, 
+.number ~ label.authError, 
+.usphone ~ label.authError, 
+.datemask ~ label.authError, 
+.group-error label.authError,
+div.error
+[data-target-value="checkbox"] label.error, 
+.check_required label.authError,
+.radio_required label.authError{
+    font-size: 12px;    
+    font-weight: normal;
+    font-family: sans-serif;
+    /*color: #d9534f;*/
+    color: red;
+    margin-left: 0px;
+    position: relative;
+    margin-left: 0px;
+    animation:errormsg 500ms linear;
+    -webkit-animation:errormsg 500ms linear;
+}
+
+.button-form-sub{
+    margin-left:160px
+}
+textarea{
+    resize: none;
+}
+
+.select2 .selection .select2-selection.select2-selection--single {
+    border-radius: 0px;
+    height: 34px;
+    padding-left: 0;
+    border-color: #ccc;
+}
+
+.navbar-nav > .user-menu > .dropdown-menu{
+    width: 130px!important;
+}
+
+.margin-bottom-5 {
+    margin-bottom: 5px;
+}
+.margin-bottom-10 {
+    margin-bottom: 10px;
+}
+.margin-bottom-15 {
+    margin-bottom: 15px;
+}
+.margin-bottom-20 {
+    margin-bottom: 20px;
+}
+.margin-top-5 {
+    margin-top: 5px;
+}
+.margin-top-10 {
+    margin-top: 10px;
+}
+.margin-top-15 {
+    margin-top: 15px;
+}
+.margin-top-20 {
+    margin-top: 20px;
+}
+
+
+.padding-bottom-5 {
+    padding-bottom: 5px;
+}
+.padding-bottom-10 {
+    padding-bottom: 10px;
+}
+.padding-bottom-15 {
+    padding-bottom: 15px;
+}
+.padding-bottom-20 {
+    padding-bottom: 20px;
+}
+.padding-top-5 {
+    padding-top: 5px;
+}
+.padding-top-10 {
+    padding-top: 10px;
+}
+.padding-top-15 {
+    padding-top: 15px;
+}
+.padding-top-20 {
+    padding-top: 20px;
+}
+.padding-top-25 {
+    padding-top: 25px;
+}
+.padding-top-30 {
+    padding-top: 30px;
+}
+
+thead tr { background: #337ab7 none repeat scroll 0 0; color: #ffffff; }
+thead tr th a { color: #ffffff; }
+
+.info-line-bx {
+    display: inline-block;
+    width: 100%;
+    margin-bottom: 15px;
+}
+.info-line-left { color: #323237;
+                  float: left;
+                  text-align: right;
+                  width: 31%;
+                  padding-right: 20px;
+}
+.info-line-right { 
+    width: 50%;
+    float: left;
+}
+
+
+.modal-default .modal-header{
+    background-color: #09347A;
+    color: #fff;
+    border: none;
+}
+.modal-header{
+    padding: 15px;
+    border-bottom: 1px solid #e5e5e5;
+}
+.modal-default .btn-default{
+    background-color: #0a502b;
+    color: #ffffff;
+    border: none;
+    min-width: 80px;
+}
+.modal-default .modal-header .close {
+    color: #fff;
+    opacity: 0.6;
+    font-weight: 400;
+}
+
+
+.view-permit-outer .viewdata{
+    margin-left:4px;
+}
+
+.permt-comn-inner-list p{
+    text-align: left;
+    padding-left: 30px;
+    margin: 15px 0 15px 0;
+    margin-left: 0;}
+.view-permit-outer .faq-wrap .card-header h5 a.collapsed{
+    color:#868686;
+}
+.view-permit-outer .faq-wrap .card-header h5 a{
+    color:#0A502B;
+}
+
+.view-permit-outer .datepicker.dropdown-menu{
+    z-index:9999!important;
+}
+.custom-pop-select2 .select .select2.select2-container {
+    width: 100% !important;
+}
+
+.custom-modal-wdth, .custom-modal-wdth.modal-lg{max-width: 700px; width: 100%;}
+
+/*css code for form phone number exteion agency add*/ 
+
+.phone-block {
+    width: 58%;
+    display: inline-block;
+    margin-right:1%;
+}
+
+.phone-extension-block {
+    width: 39%;
+    display: inline-block;
+}
+#AddAgencyPerson .agency-additional-address-block .additional-address{border-top: 1px solid #ddd;clear: both;margin-top: 20px;}
+#AddAgencyPerson .agency-additional-address-block .additional-address label.address-lable {
+    font-size: 15px;
+    padding-top: 15px;
+    padding-bottom: 0;
+    margin-bottom: 0;
+    font-style: italic;
+}
+
+.select2-container--default .select2-selection--multiple .select2-selection__choice{
+    background-color:none!important;    
+}
+.datepicker.dropdown-menu{
+    z-index:9999!important;
+}
+/*header files*/
+.input.select {
+    position: relative;
+}
+.input.select .form-control ~ label {
+    position: absolute;
+    left: 0;
+    bottom: -21px;
+}
+
+.active-parent .active{
+    color: #fff!important;
+    font-style: italic!important;
+}
+
+.head-active{
+    font-style: italic!important;
+    font-size: 16px!important;
+    color: #fff!important;  
+} 
+
+/* admin profile phone csss */
+
+.browser-btn{
+    width: 50%!important;
+    margin-left: 74px!important;
+}
+.browser-btn-popup{
+    width: 50%!important;
+    margin-left: 167px!important;
+}
+
+.profile {
+    margin: 20px 0!important;
+}
+
+/* Profile sidebar */
+.profile-sidebar {
+    padding: 20px 0 10px 0!important;
+    background: #fff!important;
+}
+
+.profile-userpic img {
+    float: none!important;
+    margin: 0 auto!important;
+    width: 50%!important;
+    height:50%!important;
+/*    -webkit-border-radius: 50% !important;
+    -moz-border-radius: 50% !important;*/
+    border: 1px;
+}

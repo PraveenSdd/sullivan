@@ -1,0 +1,11 @@
+@media screen and (max-width:1024px){
+body.body-main { padding-left:0;padding-right:0;}
+.left-sidebar { left:-220px;}
+.left-sidebar.active { left:0;}
+.right-sidebar { right:-220px;}
+.right-sidebar.active { right:0;}
+.main-content h2 { padding-left:50px;}
+.search-form { padding-right:50px;}
+.left-sidebar .lft-sidebar-control,
+.right-sidebar .rgt-sidebar-control { display:block;}
+}
