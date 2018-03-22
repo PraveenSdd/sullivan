@@ -2,7 +2,7 @@
 <div class="login-box">
             <?= $this->Flash->render()?>
     <div class="login-logo">
-        <b> <?php echo $this->Html->image('logo/sullivan-pc-blue-1000px.png',array('escape' => false,'alt'=>'Sullivan PC','style'=>'max-width:90%')); ?></b>
+        <b> <?php echo $this->Html->image('logo/logo-color-bold.png',array('escape' => false,'alt'=>'Sullivan PC','style'=>'max-width:90%')); ?></b>
 
     </div>
     <div class="login-box-body">
@@ -39,7 +39,7 @@
         </div>
             <?php echo $this->Form->end(); ?>
 
-            <?php echo $this->Html->link('I forgot my password', ['controller' => 'Users', 'action' => 'forgotPassword']); ?>
+            <?php //echo $this->Html->link('I forgot my password', ['controller' => 'Users', 'action' => 'forgotPassword']); ?>
         <br>
     </div>
 </div>

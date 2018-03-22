@@ -4,7 +4,7 @@
         <div class="signup-bx-1 inner-container ">
             <div  class="hdd-brdr"><h3>Subscription</h3></div>
             <div class="signup-bx1-in">
-                <p class="font-size-18">Subscription is successfully completed. We have sent a email on <strong><?php echo $userEmail; ?></strong> for varification. Please verify your account. If you have already verified please ignore it.</p>
+                <p class="font-size-18">Subscription is successfully completed. We have sent a email on <strong><?php echo $userEmail; ?></strong> for Verification. Please verify your account. If you have already verified please ignore it.</p>
                 <p class="font-size-18">If you have any query, please contact to NYCompliance</p>
                 <div class="site-contact-detail">
                     <ul class="clearfix">

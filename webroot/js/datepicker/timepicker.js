@@ -27,7 +27,7 @@ var timepicker = {};
 var nullFun = function () {};
 
 // 小时
-var hourStr = new Array( 24 ).fill( null ).map(function(t,i){
+var hourStr = new Array( 12 ).fill( null ).map(function(t,i){
 	var val = twobit( i ); 
 	return '<li class="cell-2 js-hour-cell" data-val="' + val + '">' + val + '</li>';
 }).join('');
@@ -47,9 +47,9 @@ var content = $('<div class="timepicker">\
 					<div class="cell-4"><a class="icon-up js-plus-minute"></a></div>\
 				</div>\
 				<div class="text">\
-					<div class="cell-4"><a class="js-hour-show" title="选择时"></a></div>\
+					<div class="cell-4"><a class="js-hour-show" title=""></a></div>\
 					<div class="cell-2">:</div>\
-					<div class="cell-4"><a class="js-minute-show" title="选择分"></a></div>\
+					<div class="cell-4"><a class="js-minute-show" title=""></a></div>\
 				</div>\
 				<div class="handle">\
 					<div class="cell-4"><a class="icon-down js-minus-houer"></a></div>\
@@ -191,7 +191,7 @@ $.fn.timepicker = function( option ) {
 			minute = +val[1];
 		} else {
 			val = new Date();
-			hour = val.getHours();
+			hour = val.getHours()% 12 || 12;
 			minute = val.getMinutes();
 		}
 		var left = this.offsetLeft + 'px';

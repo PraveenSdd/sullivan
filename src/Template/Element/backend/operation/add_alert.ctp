@@ -18,14 +18,28 @@
                                       echo $this->Form->input('alert_type_id', array(
                                          'type' => 'select',
                                          'options' => $alertTypesList,
-                                          'empty'=>'Please select alert Type',
                                           'label' => false,
                                           'class'=> 'form-control select2 alertType',
-
+                                          'id'=>'alertTypeList',
+                                          'default'=> 4,
+                                          
                                           ));
+                                       echo $this->Form->hidden('alert_type_id', array(
+                                              'value'=>4, 
+                                           ));
                                        ?>
                         </div>
-                        <div class="col-sm-6 col-xs-6 custom-pop-select2">
+                         <div class="col-sm-6 col-xs-6">
+                            <label>Title <span class="text-danger">*</span></label>
+                                <?php echo $this->Form->input('title', array(
+                                            'placeholder'=>'Title',
+                                            'class'=>'form-control required alertTitle',
+                                            'label' => false,
+                                              'maxlength'=>40, 
+                                           ));  
+                                        ?>
+                        </div>
+<!--                        <div class="col-sm-6 col-xs-6 custom-pop-select2">
                             <label>Company </label>
                                   <?php 
                                     echo $this->Form->input('company_id', array(
@@ -40,9 +54,9 @@
                                       
                                         ));
                                      ?>
-                        </div>
+                        </div>-->
                     </div>
-                    <div class="row padding-top-10">
+<!--                    <div class="row padding-top-10">
 
                         <div class="col-sm-6 col-xs-6 custom-pop-select2">
                             <label>Sullivan Staffs</label>
@@ -71,7 +85,8 @@
                                            ));  
                                         ?>
                         </div>
-                    </div>
+                    </div>-->
+
                     <div class="row padding-top-10">
 
                         <div class="col-sm-6 col-xs-6">
@@ -85,15 +100,15 @@
                                               ?>
                         </div>
 
-                        <div class="col-sm-6 col-xs-6">
+                        <div class="col-sm-6 col-xs-6 timer">
                             <label>Time </label>
-                                      <?php echo $this->Form->input('time', array(
+                            <?php echo $this->Form->input('time', array(
                                                   'placeholder'=>'hh:mm',
                                                   'class'=>'form-control time alertTime',
                                                   'label' => false,
                                                  ));  
                                               ?>
-
+                            
                         </div>
                     </div>
                     <div class="row padding-top-10">
@@ -120,7 +135,7 @@
 
                         ?>
                         <?php 
-                            echo $this->Form->hidden('operation_id', array(
+                            echo $this->Form->hidden('operation_id.', array(
                             'label' => false,
                             'class'=> 'form-control addOperationId',
                             'id'=>'addOperationId',

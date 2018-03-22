@@ -34,14 +34,7 @@
                
                 <div style="clear:both;"></div>
             </div>
-                 <div class=" padding_btm_20" style="padding-top:10px">
-			
-			<div class="col-xs-12 margin-top-20">
-                            <span class="pull-right">
-                             <?php echo $this->Html->link('Add',['controller'=>'faqs','action'=>'add'],array('class'=>'btn btn-primary','escape' => false)); ?>
-                                </span>
-                        </div>
-		    </div>
+                 
              
             <!-- /.box-header -->
             <div class="box-body table-responsive">
@@ -66,7 +59,9 @@
                         $id = $this->Encryption->encode($professionalAssistance->id);
                      ?>
                         <tr scope="row">
-                            <td><?=@$professionalAssistance->comapny_name; ?></td>
+                            <td><?php $company = $this->Custom->gitCompanyName($professionalAssistance->company_id);
+                                   echo $company['company'];
+                            ?></td>
                             <td><?=@$professionalAssistance->name; ?></td>
                             <td><?=@$professionalAssistance->email; ?></td>
                             <td><?=@$professionalAssistance->phone; ?></td>
@@ -94,7 +89,7 @@
                 <?php } } ?>
                     </tbody> 
                     </table>
-                  <?php echo $this->element('pagination'); ?>
+                  <?php echo $this->element('layout/backend/default/pagination'); ?>
                 
 
             </div>

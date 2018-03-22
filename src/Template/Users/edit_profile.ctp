@@ -2,20 +2,20 @@
 <?php  ?>
 <div class="main-content clearfix">
     <h4 class="pull-left"> 
-            <?php echo $this->element('frontend/breadcrumb'); ?>      
+            <?php echo $this->element('layout/frontend/default/breadcrumb'); ?>      
     </h4>
 
     <div class="clearfix"></div>
     <div class="form-default clearfix">
         <h5><?= $this->Flash->render() ?></h5>
 
-<?php echo $this->Form->create('Users', array('url' => array('controller' => 'users', 'action' => 'edit_profile'),'id'=>'editProfile',' method'=>'post','enctype'=>'multipart/form-data')); ?>
+<?php echo $this->Form->create('Users', array('url' => array('controller' => 'users', 'action' => 'edit_profile',$userId),'id'=>'editProfile',' method'=>'post','enctype'=>'multipart/form-data')); ?>
         <h4>Company</h4>
-              <?php if($Authuser['role_id'] ==2){ ?>
+              <?php if($userData['basic_info']->role_id ==2){ ?>
         <div class="row">
             <div class="col-sm-6 col-xs-6">
                 <label>Name<span class="text-danger">*</span></label>
-                <span class="form-control" style="background-color: #cccccc;"> <?php echo $users['company'] ?></span>
+                <span class="form-control" style="background-color: #cccccc;"> <?php echo $userData['basic_info']->company ?></span>
 
             </div>
             <div class="col-sm-6 col-xs-6">
@@ -39,8 +39,8 @@
                                         'placeholder'=>'Email',
                                         'class'=>'form-control',
                                         'label' => false,
-                                        'value'=>$users['user_location']['email'],
-                                        'data-id'=>$users['id'],
+                                        'value'=>$userData['location_info']->email,
+                                        'data-id'=>$userData['basic_info']->id,
                                         'data-parentId'=>'',
                                        ));  
                                     ?>
@@ -52,7 +52,7 @@
                                         'placeholder'=>'Phone',
                                         'class'=>'form-control inp-phone',
                                         'label' => false,
-                                        'value'=>$users['user_location']['phone'],
+                                        'value'=>$userData['location_info']->phone,
                                        ));  
                                     ?>
             </div>
@@ -68,7 +68,7 @@
                                         'placeholder'=>'Address 1',
                                         'class'=>'form-control ',
                                         'label' => false,
-                                        'value' => $users['user_location']['address1'],
+                                        'value' => $userData['location_info']->address1,
                                        ));  
                                     ?>
             </div>
@@ -81,41 +81,61 @@
                                         'placeholder'=>'Address 2',
                                         'class'=>'form-control ',
                                         'label' => false,
-                                         'value' => $users['user_location']['address2'],
+                                         'value' => $userData['location_info']->address2,
                                        ));  
                                     ?>
+            </div>   
+        </div>
+        <div class="row">            
+            <div class="col-xs-12 col-sm-6 work-operation-chkbx">
+                <label>Would You Like To Use Company Address As Work-Operation?</label>
+                <div class="checkbox-wrap1">
+                <?php
+                $checked = '';
+                if($userData['location_info']->is_operation == 1){
+                    $checked = "checked='checked'";
+                }
+                echo $this->Form->input('is_operation', array(
+                    'type' => 'checkbox',                    
+                    'label' => false,                    
+                    'class' => 'form-control-chk checkbox chk-company-operation',
+                    'hiddenField'=>false,
+                    $checked
+                ));
+                ?>
+<!--                <label for="is-operation-chk"></label>    -->
+                </div>    
             </div>
-
-
-                     <?php echo $this->Form->hidden(
-                                        'Company.id', array(
-
-                                        'label' => false,
-                                        'value' => $users['user_location']['id'],
-                                       ));  
-                                    ?>
+            
+            <div class="col-xs-12 col-sm-6 col-sel-company-operation custm-multidrop">
+                <label>Operation<span class="text-danger">*</span></label>
+                <?php
+                echo $this->Form->input('operation_id', array(
+                    'type' => 'select',
+                    'options' => $operationList,
+                    'label' => false,
+                    'multiple' => true,
+                    'class' => 'form-control category formlist sel-location-operation',
+                    'id' => 'mult-drop1',
+                    'default' => $locationOperationIds,
+                ));
+                ?>
+                <label id="mult-drop1-error" class="authError" for="mult-drop1" style="display:none"></label>
+            </div>  
         </div>
               <?php }else{ ?>
         <div class="row">
             <div class="col-xs-12 col-sm-6">
                 <div class="info-line-bx">
                     <div class="info-line-left"><label for="" class="control-label">Name :</label></div>
-                    <div class="info-line-right"> <?php 
-                        if($users['role_id']==2){ 
-                            echo $users['company'];
-                        }else{
-                            echo $companyDetails['basic_info']['company'];
-                            
-                        }?></div>
+                    <div class="info-line-right"> <?php echo $userData['basic_info']->company; ?></div>
                 </div>
             </div>
             <div class="col-xs-12 col-sm-6">
                 <div class="info-line-bx">
                     <div class="info-line-left"><label for="" class="control-label">Logo :</label></div>
-                    <div class="info-line-right">
-                                <?php if($users['role_id']==2){ $logo = $users['logo']; }else{ $logo = $companyDetails['basic_info']['logo'];   } ?> 
-                        <img style="width:80px;" src="<?php  echo $this->Html->webroot.'/'.$logo;?>">
-
+                    <div class="info-line-right">                                
+                        <img style="width:80px;" src="<?php  echo $this->Html->webroot.'/'.$userData['basic_info']->logo;?>">
                     </div>
                 </div>
             </div>
@@ -128,17 +148,13 @@
             <div class="col-xs-12 col-sm-6">
                 <div class="info-line-bx">
                     <div class="info-line-left"><label for="" class="control-label">Email :</label></div>
-                    <div class="info-line-right"> <?php if($users['role_id']==2){ echo $users['user_location']['email'];}else{ echo $companyDetails['basic_info']['email']; }?></div>
+                    <div class="info-line-right"> <?php echo $userData['location_info']->email; ?></div>
                 </div>
             </div>
             <div class="col-xs-12 col-sm-6">
                 <div class="info-line-bx">
                     <div class="info-line-left"><label for="" class="control-label">Phone :</label></div>
-                    <div class="info-line-right"> <?php if($users['role_id']==2){
-                            echo $users['user_location']['phone'];
-                            
-                        }else{ 
-                            echo $companyDetails['basic_info']['phone']; }?></div>
+                    <div class="info-line-right"> <?php echo $userData['location_info']->phone; ?></div>
                 </div>
             </div>      
 
@@ -149,17 +165,18 @@
             <div class="col-xs-12 col-sm-6">
                 <div class="info-line-bx">
                     <div class="info-line-left"><label for="CategoryName" class="control-label">Address 1 :</label></div>
-                    <div class="info-line-right"> <?php if($users['role_id']==2){ echo $users['user_location']['address1'];}else{ echo $companyDetails['location_info']['address1']; }?></div>
+                    <div class="info-line-right"> <?php echo $userData['location_info']->address1; ?></div>
                 </div>
             </div>
 
             <div class="col-xs-12 col-sm-6">
                 <div class="info-line-bx">
                     <div class="info-line-left"><label for="CategoryName" class="control-label">Address 2 :</label></div>
-                    <div class="info-line-right"> <?php if($users['role_id']==2){ echo $users['user_location']['address2'];}else{ echo $companyDetails['location_info']['address2']; }?></div>
+                    <div class="info-line-right"> <?php echo $userData['location_info']->address2; ?></div>
                 </div>
             </div>
         </div>
+        
               <?php } ?>
         <h4>Contact Details</h4>
 
@@ -172,7 +189,7 @@
                                 'placeholder'=>'First name',
                                 'class'=>'form-control ',
                                 'label' => false,
-                                'value'=>$users['first_name'],
+                                'value'=>$userData['basic_info']->first_name,
                                ));  
                             ?>
             </div>
@@ -183,7 +200,7 @@
                                 'placeholder'=>'Last name',
                                 'class'=>'form-control ',
                                 'label' => false,
-                                'value'=>$users['last_name'],
+                                'value'=>$userData['basic_info']->last_name,
                                ));  
                             ?>
             </div>
@@ -196,7 +213,7 @@
                                 'placeholder'=>'Position',
                                 'class'=>'form-control ',
                                 'label' => false,
-                                'value'=>$users['position'],
+                                'value'=>$userData['basic_info']->position,
                                ));  
                             ?>
             </div>
@@ -207,7 +224,7 @@
                                 'placeholder'=>'phone',
                                 'class'=>'form-control inp-phone',
                                 'label' => false,
-                                'value'=>$users['phone'],
+                                'value'=>$userData['basic_info']->phone,
                                ));  
                             ?>
             </div>
@@ -220,8 +237,8 @@
                                 'placeholder'=>'Email',
                                 'class'=>'form-control ',
                                 'label' => false,
-                                'value'=>$users['email'],
-                                'data-id'=>$users['id'],
+                                'value'=>$userData['basic_info']->email,
+                                'data-id'=>$userData['basic_info']->id,
                                 'data-parentId'=>'',
                                ));  
                             ?>
@@ -236,20 +253,11 @@
                                        ));  
                                     ?>
             </div>
-
-
-      <?php echo $this->Form->hidden(
-                                'Contact.id', array(
-                               
-                                'label' => false,
-                                'value' => $users['id'],
-                               ));  
-                            ?>
         </div>
 
         <div class="col-sm-12 col-xs-12 clearfix">
-                       <?php echo $this->Html->link('Cancel',['/profile'],array('class'=>'btn btn-warning','escape' => false)); ?> &nbsp;&nbsp;
- <?php echo $this->Form->button('update', array('type'=>'submit','class'=>'btn btn-default')); ?>
+                       <?php echo $this->Html->link('Cancel',['controller'=>'users','action'=>'profile',$userId],array('class'=>'btn btn-warning','escape' => false)); ?> &nbsp;&nbsp;
+ <?php echo $this->Form->button('Update', array('type'=>'submit','class'=>'btn btn-default')); ?>
 
         </div>
 <?php echo $this->Form->end();?>

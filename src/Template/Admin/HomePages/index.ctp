@@ -9,7 +9,7 @@
                     <div class="box-body">	
                         <div class="row">
 
-                                 <?php  echo $this->Form->create('HomePages', array('url' => array('controller' => 'HomePages', 'action' => 'index'),'id'=>'CategoryIndexForm',' method'=>'get')); ?>
+                                 <?php  echo $this->Form->create('HomePages', array('url' => array('controller' => 'HomePages', 'action' => 'index'),'id'=>'CategoryIndexForm','type'=>'get')); ?>
                             <div class='col-xs-3 col-md-2'>
                                         <?php echo $this->Form->input('title', array(
                                                   'placeholder'=>'Title',
@@ -18,8 +18,9 @@
                                                  ));  
                                               ?>                                </div>								
                             <div class='col-xs-12 col-md-3'>
+                                <?php echo $this->Form->button('Search', array('type'=>'submit','class'=>'btm-search btn bg-olive')); ?>
                                 <?php echo $this->Html->link('Cancel',['controller'=>'homePages','action'=>'index'],array('class'=>'btn btn-warning','escape' => false)); ?> &nbsp;&nbsp;
-                                 <?php echo $this->Form->button('Search', array('type'=>'submit','class'=>'btm-search btn bg-olive')); ?>
+                                 
                             </div>	
                             <?php echo $this->Form->end();?>
                         </div>
@@ -36,6 +37,7 @@
                             <th scope="col">Section</th>
                             <th scope="col"><?php echo $this->Paginator->sort('title', 'Title'); ?></th>
                             <th scope="col"><?php echo $this->Paginator->sort('modified', 'Last Modification'); ?></th>
+                            <th scope="col">Modified By</th>       
                             <th scope="col">Action</th>       
                         </tr>
                     </thead>
@@ -50,21 +52,19 @@
                              ?>
                         <tr>
                             <td>
-                             <?= 'Section '.$homedata->id; ?> 
+                                <?php echo $this->Html->link('Section '.$homedata->id,['controller'=>'homePages','action'=>'view',$id],array('title'=>'View','escape' => false));?>
                             </td>
                             <td>
                              <?= $homedata->title; ?> 
                             </td>
 
                             <td><?= $this->Custom->dateTime($homedata->modified); ?></td>
-
+                            <td><?= @$homedata->user->first_name; ?></td>
 
 
                             <td class="center">
 
                                 <?php echo $this->Html->link($this->Html->image("icons/edit.png"),['controller'=>'homePages','action'=>'edit',$id],array('title'=>'Edit','escape' => false)); ?> &nbsp;&nbsp;
-
-                                 <?php echo $this->Html->link($this->Html->image("icons/view.png"),['controller'=>'homePages','action'=>'view',$id],array('title'=>'View','escape' => false)); ?> &nbsp;&nbsp; 
 
                             </td>
                         </tr>
@@ -75,24 +75,20 @@
                              ?>
                         <tr>
                             <td>
-                             <?= 'Section '.$homedata->id.'.'.$countHomeSection; ?> 
+                                <?php echo $this->Html->link('Section '.$homedata->id.'.'.$countHomeSection,['controller'=>'homePages','action'=>'view',$id],array('title'=>'View','escape' => false)); ?>
                             </td>
                             <td>
                              <?= $homeSection->title; ?> 
                             </td>
 
                             <td><?= $this->Custom->dateTime($homeSection->created); ?></td>
+                            <td><?= @$homedata->user->first_name; ?></td>
 
 
 
                             <td class="center">
 
-                                <?php echo $this->Html->link($this->Html->image("icons/edit.png"),['controller'=>'homePages','action'=>'edit',$id],array('title'=>'Edit','escape' => false)); ?> &nbsp;&nbsp;
-
-                                 <?php echo $this->Html->link($this->Html->image("icons/view.png"),['controller'=>'homePages','action'=>'view',$id],array('title'=>'View','escape' => false)); ?> &nbsp;&nbsp; 
-
-
-                            </td>
+                                <?php echo $this->Html->link($this->Html->image("icons/edit.png"),['controller'=>'homePages','action'=>'edit',$id],array('title'=>'Edit','escape' => false)); ?> </td>
                         </tr>
                           <?php  
                             $countHomeSection++;
@@ -103,7 +99,7 @@
                     <?php } }?>
                     </tbody>
                 </table>
-                 <?php echo $this->element('pagination'); ?>
+                 <?php echo $this->element('layout/backend/default/pagination'); ?>
             </div>
             <!-- /.box-body -->
         </div>

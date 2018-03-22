@@ -26,18 +26,20 @@ class HomePagesController extends AppController {
      */
 
     public function index() {
-        $pageTitle = 'Homes';
-        $pageHedding = 'Homes';
+        $pageTitle = 'Homes Title';
+        $pageHedding = 'Homes Title';
         $breadcrumb = array(
-            array('label' => 'Homes'),
-        );
+            array('label' => 'Manage Website', 'link' => 'homePages/'),
+            array('label' => 'Homes Title'));
         $this->set(compact('breadcrumb', 'pageTitle', 'pageHedding'));
         $conditions = ['HomePages.is_deleted' => 0, 'HomePages.home_page_id' => 0];
         if ($this->request->query('title')) {
             $conditions['HomePages.title LIKE'] = '%' . $this->request->query('title') . '%';
         }
         $this->paginate = [
-            'contain' => ['SubHomePage'],
+            'contain' => ['SubHomePage', 'Users' => function($q) {
+                    return $q->select(['Users.id', 'Users.first_name', 'Users.last_name']);
+                }],
             'conditions' => $conditions,
             'limit' => 10,
         ];
@@ -54,22 +56,46 @@ class HomePagesController extends AppController {
      */
 
     public function edit($id = null) {
-        $pageTitle = 'Homes | Edit';
-        $pageHedding = 'Edit';
+        $this->set(compact('id'));
+        $pageTitle = 'Edit Home Title ';
+        $pageHedding = 'Edit Home Title';
         $breadcrumb = array(
-            array('label' => 'Homes', 'link' => 'homePages/'),
-            array('label' => 'Edit'),
+            array('label' => 'Manage Website', 'link' => 'homePages/'),
+            array('label' => 'Edit Home Title '),
         );
         $this->set(compact('breadcrumb', 'pageTitle', 'pageHedding'));
-        $homeId = $id;
+
+        $id = $this->Encryption->decode($id);
+        if (empty($id)) {
+            $id = $this->request->data['id'];
+        }
+        $home = $this->HomePages->find()->hydrate(false)
+                        ->where(['HomePages.id =' => $id])->first();
+        if (empty($home)) {
+            $this->Flash->error(__('Record not found!'));
+            return $this->redirect(['controller' => 'homePages', 'action' => 'index', 'prefix' => 'admin']);
+        }
+        $this->set(compact('home'));
         if ($this->request->is('post')) {
             $homes = $this->HomePages->newEntity();
             $this->HomePages->patchEntity($homes, $this->request->data, ['validate' => 'Edit']);
-            $fineData = $this->Upload->uploadImage($this->request->data['file']);
-            $homes['image'] = $fineData;
+            //$fineData = $this->Upload->uploadImage($this->request->data['file']);
+            //$homes['image'] = $fineData;
             if (!$homes->errors()) {
                 $success = $this->HomePages->save($homes);
                 if ($success) {
+                    $this->_updatedBy('HomePages', $success->id);
+                    /* === Added by vipin for  add log=== */
+                    $message = 'Home page updated by ' . $this->loggedusername;
+                    $saveActivityLog = [];
+                    $saveActivityLog['table_id'] = $success->id;
+                    $saveActivityLog['table_name'] = 'home_pages';
+                    $saveActivityLog['module_name'] = 'Home Page';
+                    $saveActivityLog['url'] = $this->referer();
+                    $saveActivityLog['message'] = $message;
+                    $saveActivityLog['activity'] = 'Edit';
+                    $this->Custom->saveActivityLog($saveActivityLog);
+                    /* === Added by vipin for  add log=== */
                     $this->Flash->success(__('Home page has been updated successfully.'));
                     return $this->redirect(['controller' => 'homePages', 'action' => 'index', 'prefix' => 'admin']);
                 } else {
@@ -77,14 +103,8 @@ class HomePagesController extends AppController {
                 }
             } else {
                 $this->Flash->error(__($this->Custom->multipleFlash($homes->errors())));
-                return $this->redirect(['controller' => 'homePages', 'action' => 'edit', $homeId, 'prefix' => 'admin']);
             }
         }
-
-        $id = $this->Encryption->decode($id);
-        $home = $this->HomePages->find()->hydrate(false)
-                        ->where(['HomePages.id =' => $id])->first();
-        $this->set(compact('home'));
     }
 
     /*
@@ -96,11 +116,11 @@ class HomePagesController extends AppController {
      */
 
     public function view($id = null) {
-        $pageTitle = 'Homes | View';
-        $pageHedding = 'View';
+        $pageTitle = 'View Home Title';
+        $pageHedding = 'View Home Title';
         $breadcrumb = array(
-            array('label' => 'Homes', 'link' => 'forms/index'),
-            array('label' => 'View'),
+            array('label' => 'Manage Website', 'link' => 'homePages/'),
+            array('label' => 'View Home Title'),
         );
         $this->set(compact('breadcrumb', 'pageTitle', 'pageHedding'));
         $id = $this->Encryption->decode($id);
@@ -121,7 +141,7 @@ class HomePagesController extends AppController {
         $pageTitle = 'Subscription Plans';
         $pageHedding = 'Subscription Plans';
         $breadcrumb = array(
-            array('label' => 'Homes', 'link' => 'homePages/'),
+            array('label' => 'Manage Website', 'link' => 'homePages/subscriptionPlans/'),
             array('label' => 'Subscription Plans'),
         );
         $this->set(compact('breadcrumb', 'pageTitle', 'pageHedding'));
@@ -132,7 +152,9 @@ class HomePagesController extends AppController {
             $this->request->data = $this->request->query('name');
         }
         $this->paginate = [
-            'contain' => ['Attributes'],
+            'contain' => ['Attributes', 'Users' => function($q) {
+                    return $q->select(['Users.id', 'Users.first_name', 'Users.last_name']);
+                }],
             'conditions' => $conditions,
             'limit' => 10,
         ];
@@ -149,11 +171,11 @@ class HomePagesController extends AppController {
      */
 
     public function EditSubscriptionPlans($id = null) {
-        $pageTitle = 'Subscription Plans | Edit';
-        $pageHedding = 'Subscription Plans | Edit';
+        $pageTitle = 'Edit Subscription Plan';
+        $pageHedding = 'Edit Subscription Plan';
         $breadcrumb = array(
-            array('label' => 'Subscription Plans', 'link' => 'homePages/subscriptionPlans/'),
-            array('label' => 'Edit'),
+            array('label' => 'Manage Website', 'link' => 'homePages/subscriptionPlans/'),
+            array('label' => 'Edit Subscription Plan'),
         );
         $this->set(compact('breadcrumb', 'pageTitle', 'pageHedding'));
         $this->loadModel('SubscriptionPlans');
@@ -198,6 +220,18 @@ class HomePagesController extends AppController {
                             $succ = $SubscriptionPlanAttributes->save($SubscriptionPlanAttribute);
                         }
                     }
+                    $this->_updatedBy('SubscriptionPlans', $success->id);
+                    /* === Added by vipin for  add log=== */
+                    $message = 'Subscription plan updated by ' . $this->loggedusername;
+                    $saveActivityLog = [];
+                    $saveActivityLog['table_id'] = $success->id;
+                    $saveActivityLog['table_name'] = 'subscription_plans';
+                    $saveActivityLog['module_name'] = 'Subscription Plan';
+                    $saveActivityLog['url'] = $this->referer();
+                    $saveActivityLog['message'] = $message;
+                    $saveActivityLog['activity'] = 'Edit';
+                    $this->Custom->saveActivityLog($saveActivityLog);
+                    /* === Added by vipin for  add log=== */
                     $this->Flash->success(__('Subscription plans has been updated successfully.'));
                     return $this->redirect(['controller' => 'homePages', 'action' => 'SubscriptionPlans', 'prefix' => 'admin']);
                 } else {
@@ -226,7 +260,7 @@ class HomePagesController extends AppController {
         $pageTitle = 'Subscription Plans | View';
         $pageHedding = 'Subscription Plans | View';
         $breadcrumb = array(
-            array('label' => 'Subscription Plans', 'link' => 'homePages/subscriptionPlans/'),
+            array('label' => 'Manage Website', 'link' => 'homePages/subscriptionPlans/'),
             array('label' => 'View'),
         );
         $this->set(compact('breadcrumb', 'pageTitle', 'pageHedding'));

@@ -17,6 +17,9 @@ namespace Cake\ORM;
 use Cake\Datasource\EntityInterface;
 use Cake\Datasource\EntityTrait;
 use Cake\Datasource\InvalidPropertyInterface;
+use Cake\Utility\Inflector;
+use InvalidArgumentException;
+use RuntimeException;
 
 /**
  * An entity represents a single result row from a repository. It exposes the
@@ -79,5 +82,50 @@ class Entity implements EntityInterface, InvalidPropertyInterface
         if ($options['markClean']) {
             $this->clean();
         }
+    }
+    
+    /**
+     * 
+     * @param type $string
+     * @return type
+     */
+    public function setUcWords($string){
+        return ucwords(trim($string));
+    }
+    
+    /**
+     * 
+     * @param type $string
+     * @return type
+     */
+    public function setUcFirst($string){
+        return ucfirst(trim($string));
+    }
+    
+    /**
+     * 
+     * @param type $string
+     * @return type
+     */
+    public function setStrToLower($string){
+        return strtolower(trim($string));
+    }
+    
+    /**
+     * 
+     * @param type $string
+     * @return type
+     */
+    public function setStrToUpper($string){
+        return strtoupper(trim($string));
+    }
+    
+    /**
+     * 
+     * @param type $string
+     * @return type
+     */
+    public function generateSlug($string){
+        return strtolower(Inflector::slug($string,'-'));
     }
 }

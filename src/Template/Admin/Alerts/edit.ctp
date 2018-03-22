@@ -1,259 +1,261 @@
+<?php ?>
 <div class="row">
     <h5><?= $this->Flash->render() ?></h5>
     <div class="col-md-12">
         <div class="box box-primary">
             <div class="box-header with-border padding-top-5">
-            <?php  echo $this->Form->create('Alerts', array('url' => array('controller' => 'alerts', 'action' => 'edit'),'id'=>'add_alerts',' method'=>'post','class'=>'form-horizontal')); ?>
-                <div class="col-md-12">
+
+                  <?php if($LoggedPermissionId !=3){ ?>
+                <div class="col-md-12 margin-top-15">
                     <div class="text-right">
-                        <?php echo $this->Html->link($this->Html->image('icons/delete.png'),'javascript:void(0);',array('escape' => false,'title'=>'Delete','data-url'=>"/admin/alerts/index", 'data-title'=>$alert['title'],'data-modelname'=>'Alerts','data-id'=> $alert->id,'class'=>"myalert-delete")); ?> 
+                        <?php echo $this->Form->postLink($this->Html->image('icons/delete.png'), ['controller' => 'customs', 'action' => 'delete', $this->Encryption->encode($alerts->id)],['data'=>['model_name'=>'Alerts','module_name'=>'Alert','table_name'=>'alerts','title'=>htmlentities($alerts->title),'redirect_url'=>"/admin/alerts/index",'foreignId'=>'','subModel'=>''], 'escape'=>false, 'class'=>'deleteConfirm']);
+                        ?> 
                     </div>
-                    </div>
-                <div class="col-md-8">
-                   
+                </div>
+                  <?php } ?>
+                <?php  echo $this->Form->create('Alert', array('url' => array('controller' => 'alerts', 'action' => 'edit',$alertId),'id'=>'frmAlert',' method'=>'post','class'=>'form-horizontal frmAlert')); ?>
+                <div class="col-md-12">
                     <div class="box-body">
-                        <div class="form-group">
-                            <label for="CategoryName" class="col-sm-3 control-label">Alert Type<span class="text-danger">*</span>                            </label>
-                            <div class="col-sm-9">
+                        <div class="row margin-top-15">
+                            <div class="col-sm-6">
+                                <div class="form-group">
+                                    <label for="CategoryName" class="col-sm-3 control-label">Alert Type<span class="text-danger">*</span></label>
+                                    <div class="col-sm-9">
                                     <?php 
-                                      echo $this->Form->input('alert_type_id', array(
+                                      echo $this->Form->input('Alert.alert_type_id', array(
                                          'type' => 'select',
-                                         'options' => $alertTypesList,
+                                         'options' => $alertTypeList,
                                           'empty'=>'Please select alert type',
                                           'label' => false,
-                                          'class'=> 'form-control required alertType',
-                                          'default'=>$alert->alert_type_id
+                                          'class'=> 'form-control select2 required inp-alert-type',
+
                                           ));
                                        ?>
+                                    </div>
+                                </div>
                             </div>
-                        </div>
-                        <?php if($alert->alert_type_id == 3){ 
-                                foreach($alert['alert_companies'] as $company){
-                                    $companyId[] = $company['company_id'];
-                                    echo $this->Form->hidden('alert_companies_id.', array(
-                                                  'value'=>$company['id'],
-                                                 ));  
-                                }
-                                  $disabledCompany = 'false';
-                            }else{
-                                $companyId ='';
-                                $disabledCompany = 'true';
-                            }  
-                            ?>
-                        <div class="alertTypeCompanyList">
-                            <div class="form-group ">
-                                <label for="CategoryName" class="col-sm-3 control-label titleAlert">Select Companies</label>
-                                <div class="col-sm-9">
-                                     <?php 
-                                        echo $this->Form->input('company_id', array(
-                                           'type' => 'select',
-                                           'options' => $companiesLists,
-                                            'multiple'=>"multiple",
-                                            'label' => false,
-                                            'disabled' => $disabledCompany, 
-                                            'class'=> 'form-control select2',
-                                            'id'=>'companiesList',
-                                            'default'=>$companyId,
-                                            ));
-                                         ?>
+                            <div class="col-sm-6">
+                                <div class="form-group">
+                                    <label for="usersName" class="col-sm-3 control-label">Sullivan Staffs</label>
+                                    <div class="col-sm-9">
+                                        <?php
+                                        # Get Alert-Staff-Id
+                                        $alertStaffIds = [];
+                                        foreach ($alerts['alert_staffs'] as $alertStaff) {
+                                            $alertStaffIds[$alertStaff['user_id']] = $alertStaff['user_id'];
+                                        }
+                                        $alertStaffIds = implode(',', $alertStaffIds);
+                                        ?>
+                                <?php 
+                                    echo $this->Form->input('Alert.staff_id', array(
+                                       'type' => 'select',
+                                       'options' => $subAdminList,
+                                        'multiple'=>true,
+                                        'label' => false,
+                                        'disabled','disabled',
+                                        'class'=> 'form-control select2 inp-alert-staff',
+                                        'data-alert-staff-id'=>$alertStaffIds
+                                     
+                                        ));
+                                     ?>
+
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                        <?php if($alert->alert_type_id == 4){ 
-                            foreach($alert['alert_industries'] as $industry){
-                                    $industryId[] = $industry['industry_id'];
-                                    echo $this->Form->hidden('alert_industries_id.', array(
-                                                  'value'=>$industry['id'],
-                                    ));
-                                }
-                                 $disabledIndustry = 'false';
-                                ?>
-                        <?php }else{
-                                $industryId ='';
-                                 $disabledIndustry = 'true';
-                            }  ?>
-                        <div class="form-group alertTypeIndustryList">
-                            <label for="CategoryName" class="col-sm-3 control-label titleAlert">Operations</label>
-                            <div class="col-sm-9">
-                                <?php 
-                                    echo $this->Form->input('industry_id', array(
+                        <div class="row margin-top-15">
+                            <div class="col-sm-6">
+                                <div class="form-group">
+                                    <label for="CategoryName" class="col-sm-3 control-label">Company</label>
+                                    <div class="col-sm-9">
+                                        <?php
+                                            # Get Alert-Company-Id
+                                            $alertCompanyIds = [];
+                                            foreach ($alerts['alert_companies'] as $alertCompany) {
+                                                $alertCompanyIds[$alertCompany['user_id']] = $alertCompany['user_id'];
+                                            }
+                                            $alertCompanyIds = implode(',', $alertCompanyIds);                
+                                            ?>
+                                 <?php 
+                                    echo $this->Form->input('Alert.company_id', array(
                                        'type' => 'select',
-                                       'options' => $operationsLists,
-                                        'multiple'=>"multiple",
+                                       'options' => $companyList,
+                                        'multiple'=>true,
                                         'label' => false,
-                                        'disabled' => $disabledIndustry, 
-                                        'class'=> 'form-control select2',
-                                        'id'=>'industriesList',
-                                         'default'=>$industryId,
+                                        'disabled','disabled',
+                                        'class'=> 'form-control select2  inp-alert-company',
+                                      'data-alert-company-id'=>$alertCompanyIds
+                                        ));
+                                     ?>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-6">
+                                <div class="form-group">
+                                    <label for="CategoryName" class="col-sm-3 control-label">Operations</label>
+                                    <div class="col-sm-9">
+                                        <?php
+                                        # Get Alert-Operation-Id
+                                        $alertOperationIds = [];
+                                        foreach ($alerts['alert_operations'] as $alertOperation) {
+                                            $alertOperationIds[$alertOperation['operation_id']] = $alertOperation['operation_id'];
+                                        }
+                                        $alertOperationIds = implode(',', $alertOperationIds);
+                                        ?>
+                                <?php 
+                                    echo $this->Form->input('Alert.operation_id', array(
+                                       'type' => 'select',
+                                       'options' => $operationList,
+                                        'multiple'=>true,
+                                        'label' => false,
+                                        'disabled','disabled',
+                                        'class'=> 'form-control select2 inp-alert-operation',
+                                     'data-alert-operation-id'=>$alertOperationIds
                                         ));
                                      ?>
 
+                                    </div>
+                                </div>  
                             </div>
                         </div>
-                        <?php if($alert->alert_type_id == 2){ 
-                            foreach($alert['alert_staffs'] as $staff){
-                                    $staffId[] = $staff['user_id'];
-                                    echo $this->Form->hidden('alert_staff_id.', array(
-                                                  'value'=>$staff['id'],
-                                    ));
-                                }
-                                 $disabledStaff = 'false';
-                                ?>
-                        <?php }else{
-                                $staffId ='';
-                                 $disabledStaff = 'true';
-                            }  ?>
-                        <div class="form-group alertTypeIndustryList">
-                            <label for="CategoryName" class="col-sm-3 control-label titleAlert">Staffs</label>
-                            <div class="col-sm-9">
-                                <?php 
-                                    echo $this->Form->input('staff_id', array(
-                                       'type' => 'select',
-                                       'options' => $staffLists,
-                                        'multiple'=>"multiple",
-                                        'label' => false,
-                                        'disabled' => $disabledStaff, 
-                                        'class'=> 'form-control select2',
-                                        'id'=>'staffList',
-                                         'default'=>$staffId,
-                                        ));
-                                     ?>
-
-                            </div>
-                        </div>
-                        
-
-                        <div class="form-group">
-                            <label for="CategoryName" class="col-sm-3 control-label">Title<span class="text-danger">*</span></label>
-                            <div class="col-sm-9">
-                  <?php echo $this->Form->input('title', array(
+                        <div class="row margin-top-15">
+                            <div class="col-sm-6">
+                                <div class="form-group">
+                                    <label for="CategoryName" class="col-sm-3 control-label">Title<span class="text-danger">*</span></label>
+                                    <div class="col-sm-9">
+                            <?php echo $this->Form->input('Alert.title', array(
                                                   'placeholder'=>'Title',
-                                                  'class'=>'form-control required',
+                                                  'class'=>'form-control required inp-alert-title',
                                                   'label' => false,
-                                                  'value'=>$alert->title,
+                                                  'maxlength'=>40,
                                                  ));  
                                               ?>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-6">
+                                <div class="form-group">
+                                    <label for="alert-date" class="col-sm-3 control-label">Date</label>
+                                    <div class="col-sm-9">
+                                <?php echo $this->Form->input('Alert.date', array(
+                                                  'placeholder'=>'MM-DD-YYYY',
+                                                  'class'=>'form-control inp-date-picker inp-alert-date',
+                                                  'label' => false
+                                                 ));  
+                                              ?>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                        <div class="form-group">
-                            <label for="CategoryName" class="col-sm-3 control-label">Notes<span class="text-danger">*</span></label>
-                            <div class="col-sm-9">
+                        <div class="row margin-top-15">
+                            <div class="col-sm-6">
+                                <div class="form-group">
+
+                                    <label for="CategoryName" class="col-sm-3 control-label">Time</label>
+                                    <div class="col-sm-9">
+                                <?php echo $this->Form->input('Alert.time', array(
+                                                  'placeholder'=>'HH:MM AM/PM',
+                                                  'class'=>'form-control inp-time-picker  inp-alert-time',
+                                                  'label' => false,
+                                                 ));  
+                                              ?>
+
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-6">
+                                <div class="form-group">
+                                    <label for="CategoryName" class="col-sm-3 control-label">Is Repeat</label>
+                                    <div class="col-sm-9">
+                                        <div class="col-sm-1">
+                                            <?php
+                                            $checked = null;
+                                            if($alerts->is_repeated){
+                                                $checked = "checked='checked";
+                                            }
+                                            echo $this->Form->input('Alert.is_repeated', array(
+                                                'type' => 'checkbox',
+                                                'class' => 'inp-alert-repeat',
+                                                'label' => false,
+                                                $checked
+                                            ));
+                                            ?>
+
+
+                                        </div>
+                                        <div class="col-sm-4">
+                                <?php 
+                                        echo $this->Form->input('Alert.interval_value', array(
+                                                  'label' => false,
+                                                  //'disabled'=>'disabled',
+                                                   'class'=>'form-control inp-integer inp-alert-interval',
+                                                   'maxlength'=>2
+                                                 ));  
+                                              ?>
+                                        </div>
+                                        <div class="col-sm-6">
+                                     <?php 
+                                        echo $this->Form->input('Alert.interval_type', array(
+                                       'type' => 'select',
+                                        'label' => false,
+                                        //'disabled'=>'disabled',
+                                        'options' => ['Days'=>'Days','Weeks'=>'Weeks','Months'=>'Months'],
+                                         'class'=>'form-control  inp-alert-interval-type'   
+                                        
+                                        ));
+                                     ?>
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+
+                        </div>
+                        <div class="row margin-top-15">
+                            <div class="col-sm-6">
+                                <div class="form-group">
+                                    <label for="CategoryName" class="col-sm-3 control-label">Notes<span class="text-danger">*</span></label>
+                                    <div class="col-sm-9">
                                 <?php echo $this->Form->textarea(
-                                        'notes',
+                                        'Alert.notes',
                                         array(
                                             'placeholder'=>'Notes',
-                                            'class'=>'form-control',
+                                            'class'=>'form-control inp-alert-notes',
                                             'label' => 'false',
                                               'rows'=>"5",
-                                             'value'=>$alert->notes,
+                                            'maxlength'=>160,
                                            ));  
                                         ?>
-                            </div>
-                        </div>
-                        
-                        
-                        <div class="form-group">
-                            <label for="CategoryName" class="col-sm-3 control-label">Date</label>
-                            <div class="col-sm-9">
-                                <?php echo $this->Form->input('date', array(
-                                                  'placeholder'=>'mm-dd-yyyy',
-                                                  'class'=>'form-control datepicker',
-                                                  'label' => false,
-                                                  'value'=> date('m-d-Y',strtotime($alert->date)),
-                                                 ));  
-                                              ?>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label for="CategoryName" class="col-sm-3 control-label">Time</label>
-                            <div class="col-sm-9">
-                                <?php echo $this->Form->input('time', array(
-                                                  'placeholder'=>'hh:mm',
-                                                  'class'=>'form-control time',
-                                                  'label' => false,
-                                                  'value'=>$alert->time,
-                                                 ));  
-                                              ?>
-                                
-                            </div>
-                        </div>
-                       
-                        
-                        <div class="form-group">
-                            <label for="CategoryName" class="col-sm-3 control-label">Repetition</label>
-                            <div class="col-sm-9">
-                            <div class="col-sm-1">
-                                    
-                                        <?php if($alert->is_repeated == 1){
-                                            $checked = true;
-                                        }else{
-                                            $checked = false;
-                                        } echo $this->Form->input('is_repeated', array(
-                                                'type'=>'checkbox',
-                                                  'class'=>'checkbox',
-                                                    'checked'=>$checked,
-                                                  'label' => false,
-                                                    'div'=>false,
-                                                    'legend'=>false,
-                                                    'id'=>'chkRepetition',
-                                                    'hiddenField'=>false
-                                                 ));  
-                                              ?>  
-                            </div>
-                             <div class="col-sm-2">
-                                <?php  if(!empty($alert->interval_alert)){
-                                            $disabledInterva = false;
-                                        }else{
-                                           $disabledInterva = true;
-                                        }
-                                        echo $this->Form->input('interval', array(
-                                                  'label' => false,
-                                                  'disabled'=>$disabledInterva,
-                                                  'value'=>$alert->interval_alert,
-                                                    'id'=>'interval',
-                                                 ));  
-                                              ?>
-                             </div> &nbsp;&nbsp;
-                             <div class="col-sm-3" style="margin-left:120px">
-                                     <?php 
-                                     if(!empty($alert->interval_type)){
-                                            $disabledIntervalType = false;
-                                        }else{
-                                           $disabledIntervalType = true;
-                                        }
-                                     $data = array('Days'=>'Days','Weeks'=>'Weeks','Months'=>'Months');
-                                        echo $this->Form->input('interwell_type', array(
-                                       'type' => 'select',
-                                        'label' => false,
-                                        'disabled'=>$disabledIntervalType,
-                                        'options' => $data,
-                                        'id'=>'enterWellType',
-                                         'default'=>$alert->interval_type,
-                                        ));
-                                     ?>
-                                 </div>
+                                    </div>
                                 </div>
                             </div>
-                        
-                        
-
-
-            <?php echo $this->Form->hidden('id', array('value'=>@$alert->id));  
+                            <div class="col-sm-6">
+                                <div class="form-group">
+                                    <label for="CategoryName" class="col-sm-3 control-label">End Date</label>
+                                    <div class="col-sm-9">
+                                <?php echo $this->Form->input('Alert.alert_end_date', array(
+                                                  'placeholder'=>'MM-DD-YYYY',
+                                                  'class'=>'form-control inp-alert-end-date',
+                                                  'label' => false,
+                                                 ));  
                                               ?>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                         <div class="box-footer button-form-sub">
-                            <?php echo $this->Html->link('Cancel',['controller'=>'alerts','action'=>'index'],array('class'=>'btn btn-warning','escape' => false)); ?> &nbsp;&nbsp;
- <?php echo $this->Form->button('Update', array('type'=>'submit','class'=>'btn btn-primary')); ?>
+                         <?php echo $this->Html->link('Cancel',['controller'=>'alerts','action'=>'index'],array('class'=>'btn btn-warning','escape' => false)); ?> &nbsp;&nbsp;
+                        <?php echo $this->Form->button('Update', array('type'=>'submit','class'=>'btn btn-primary')); ?>
+
                         </div>
                     </div>
-             <?php echo $this->Form->end();?>
                 </div>
+             <?php echo $this->Form->end();?>
             </div>
         </div>
     </div>
 </div>
-
-
-
+<?= $this->Html->script(['backend/alert']);?>
 
 
 

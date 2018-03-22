@@ -15,8 +15,17 @@ class PermitInstructionsTable extends Table {
 
     public function validationDefault(Validator $validator) {
         $validator
-                ->notEmpty('title', 'Please enter title');
+                ->notEmpty('name', 'Please enter name');
         return $validator;
+    }
+    
+    /**
+     * 
+     * @param type $permitId
+     * @return type
+     */
+    public function getDataByPermitId($permitId){
+        return $this->find()->where(['PermitInstructions.permit_id' => $permitId, 'PermitInstructions.is_active' => 1, 'PermitInstructions.is_deleted' => 0])->all();
     }
 
 }

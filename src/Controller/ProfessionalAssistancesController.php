@@ -39,7 +39,6 @@ class ProfessionalAssistancesController extends AppController {
      */
 
     public function index() {
-        $this->viewBuilder()->setLayout('dashboard');
         $pageTitle = 'Professional Assistances';
         $pageHedding = 'Professional Assistances';
         $breadcrumb = array(
@@ -49,7 +48,9 @@ class ProfessionalAssistancesController extends AppController {
 
         $this->loadModel('ProfessionalAssistances');
         if ($this->request->is('post')) {
+            
             $this->request->data['name'] = ucfirst($this->request->data['name']);
+            $this->request->data['company_id'] =$this->companyId;
             $this->request->data['user_id'] = $this->Auth->user('id');
             $professionalAssistances = $this->ProfessionalAssistances->newEntity();
             $this->ProfessionalAssistances->patchEntity($professionalAssistances, $this->request->data);
@@ -73,10 +74,10 @@ class ProfessionalAssistancesController extends AppController {
                     $send = $this->Custom->sendEmail($data, $to, $template, $subject);
 
 
-                    $this->Flash->success(__('ProfessionalAssistances has been saved successfully.'));
+                    $this->Flash->success(__('help has been saved successfully, we are contact as soon as.'));
                     return $this->redirect(['controller' => 'professionalAssistances', 'action' => 'index']);
                 } else {
-                    $this->Flash->error(__('ProfessionalAssistances could not be saved'));
+                    $this->Flash->error(__('help could not be saved'));
                 }
             } else {
                 $this->Flash->error(__($this->Custom->multipleFlash($professionalAssistances->errors())));

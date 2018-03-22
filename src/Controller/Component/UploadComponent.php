@@ -70,19 +70,19 @@ class UploadComponent extends Component {
     public function uploadOtherFile($file = null, $path = null) {
         if (isset($file) && $file["error"] == 0) {
 
-            $allowed = array('image/gif', 'image/png', 'image/jpg', 'image/jpeg', 'doc', 'docx', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'application/pdf', 'pdf', 'xls', 'xlsx', 'jpg', 'png', 'gif', 'jpeg');
+            $allowed = array('image/gif', 'image/png', 'image/jpg', 'image/jpeg', 'doc', 'docx', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'application/pdf', 'pdf', 'xls', 'xlsx', 'jpg', 'png', 'gif', 'jpeg','application/vnd.ms-excel','application/msword','doc', 'docx');
             $filename = $file['name'];
             $filetype = $file["type"];
             $filesize = $file["size"];
             /* Verify file extension */
             $ext = pathinfo($filename, PATHINFO_EXTENSION);
-
-            if (!in_array($ext, $allowed)) {
+            //if (!in_array($ext, $allowed)) { 
+            if (false) {
                 return false;
             }
             /* Verify MYME type of the file */
-
-            if (in_array($filetype, $allowed)) {
+            //if (in_array($filetype, $allowed)) { 
+            if (true) {
                 $date = date("Ymdhis");
                 $documentname = $date . Inflector::slug($file["name"], '') . '.' . $ext;
                 $newpath = WWW_ROOT . $path . "/" . $documentname;
@@ -95,6 +95,60 @@ class UploadComponent extends Component {
             return false;
         }
     }
+
+     public function checkFileUpload($files){
+       
+       if($files["PermitForm"]["error"]["file"] == 0){
+            $allowedExts = array("pdf"); 
+            $tmp = explode('.', $files["PermitForm"]["name"]["file"]);
+            $extension = $tmp[1];
+            
+            $mimeArray = array('application/pdf');
+            $mime = mime_content_type($files["PermitForm"]["tmp_name"]["file"]);
+            if ( ( in_array($extension, $allowedExts) ) 
+                && 
+                ( $files["PermitForm"]["size"]["file"] < 200000 )
+                &&
+                ( in_array($mime, $mimeArray) )
+               )
+            {      
+              return 'Success';
+            }
+            else
+            {
+              return 'Error';
+            }return 'Error';
+        }return 'Error';
+
+    }
+
+
+     public function checksaveRelatedDocument($files){
+        if($files["PermitDocument"]["error"]["file"] == 0)
+        {
+            $allowedExts = array("pdf", "doc", "docx","xla","xlc","xlm","xls","ppt"); 
+            $tmp = explode('.', $files["PermitDocument"]["name"]["file"]);
+            $extension = $tmp[1];
+            // link https://www.thoughtco.com/file-extensions-and-mime-types-3469109
+            $mimeArray = array('application/pdf','application/msword','application/vnd.ms-excel','application/msexcel','application/x-msexcel','application/x-ms-excel','application/x-excel','application/x-dos_ms_excel','application/xls','application/x-xls','application/vnd.openxmlformats-officedocument.spreadsheetml.sheet','application/vnd.ms-powerpoint','application/vnd.ms-office');
+            $mime = mime_content_type($files["PermitDocument"]["tmp_name"]["file"]);
+            if ( ( in_array($extension, $allowedExts) ) 
+                && 
+                ( $files["PermitDocument"]["size"]["file"] < 200000 )
+                &&
+                ( in_array($mime, $mimeArray) )
+               )
+            {      
+              return 'Success';
+            }
+            else
+            {
+              return 'Error';
+            }return 'Error';
+        }return 'Error';
+    }
+
+
 
     /*
      * Function:uploadOtherFile()

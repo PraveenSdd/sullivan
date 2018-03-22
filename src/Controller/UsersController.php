@@ -6,6 +6,8 @@ use Cake\ORM\TableRegistry;
 use Cake\Validation\Validator;
 use Cake\Auth\DefaultPasswordHasher;
 use Cake\Network\Email\Email;
+use Cake\Core\Configure;
+use Cake\Utility\Inflector;
 
 class UsersController extends AppController {
 
@@ -13,9 +15,11 @@ class UsersController extends AppController {
         parent::initialize();
         $this->loadComponent('Paginator');
         $this->loadComponent('Upload');
-        $this->loadComponent('Payment');
+        $this->loadComponent('Stripe');
+        $this->loadComponent('Paypal');
         $this->loadComponent('Encryption');
-        $this->loadComponent('Flash'); // Include the FlashComponent        
+        $this->loadComponent('Flash'); // Include the FlashComponent  
+        $this->loadComponent('ValidateCompanyAndUser');
         $this->Auth->allow(['signup', 'signup', 'registration', 'resendVerification', 'ajaxLogin', 'forgotPassword', 'EmployeeSignup', 'emailVerification', 'token', 'resetPassword', 'token']);
     }
 
@@ -28,50 +32,43 @@ class UsersController extends AppController {
     public function login() {
         $this->viewBuilder()->setLayout('login');
         $pageTitle = 'Login';
+        /* role_id 2 for company role _id 3 for employee */
         $this->set('pageTitle', $pageTitle);
+        $message = [];
         if ($this->request->is('post')) {
-            $this->loadModel('Subscriptions');
-            $user = $this->Users->find()->select(['Users.id', 'Users.user_id', 'role_id', 'is_verify'])->where(['Users.email' => $this->request->data['email'], 'Users.is_active' => 1, 'Users.is_deleted' => 0])->first();
-            if ($user) {
-                /* check company staff verfy or not  **** */
 
-                if ($user->role_id == 3 && $user->is_verify == 1) {
-                    $this->Flash->error(__('Sorry you are not authorize, Plese contact to company.'));
-                    return $this->redirect(['controller' => 'users', 'action' => 'login']);
-                }
-                /*                 * *** check user company or staff **** */
-                if ($user->user_id == 0) {
+            $user = $this->Users->find()->select(['Users.id', 'Users.first_name', 'Users.last_name', 'Users.email', 'Users.user_id', 'Users.role_id', 'Users.permission_id', 'Users.is_verify', 'Users.is_active', 'Users.email_verification'])->where(['Users.email' => $this->request->data['email'], 'Users.is_deleted' => 0])->first();
+            $role_id = isset($user['role_id']) ? trim($user['role_id']) : '';
 
-                    $userId = $user->id;
-                    $messageUser = 'Please complate payment process fistly.';
-                    $msgto = "Plese contact to administrator";
-                } else {
-                    $userId = $user->user_id;
-                    $messageUser = "Company account is not active, please contact to the company";
-                    $msgto = "Plese contact to company";
-                }
-                /**                 * *** check company Payment pay or not  **** */
-                $subscriptions = $this->Subscriptions->find()->where(['Subscriptions.user_id' => $userId, 'Subscriptions.is_registration' => 1])->first();
-                if ($subscriptions) {
+            if ($role_id == 3 || $role_id == 2) {
+                if ($role_id == 2) {
 
-                    $user = $this->Auth->identify();
-                    if ($user) {
-                        if ($user['role_id'] == 2 || $user['role_id'] == 3) {
-                            $this->Auth->setUser($user);
-                            return $this->redirect(['controller' => 'users', 'action' => 'dashboard']);
-                        } else {
-                            return $this->redirect('/dashboard');
-                        }
+                    $response = $this->ValidateCompanyAndUser->validateCompanyProfle($user);
+                    if ($response['statusCode'] == 200) {
+                        $this->Auth->setUser($user);
+                        return $this->redirect(['controller' => 'users', 'action' => 'dashboard']);
                     } else {
-                        $this->Flash->error(__('You could not login successfully.'));
+                        $message = $response;
                     }
-                } else {
-                    $this->Flash->error(__($messageUser));
+                } else if ($role_id == 3) {
+
+                    $response = $this->ValidateCompanyAndUser->validateCompanyUserProfle($user);
+                    if ($response['statusCode'] == 200) {
+                        $this->Auth->setUser($user);
+                        return $this->redirect(['controller' => 'users', 'action' => 'dashboard']);
+                    } else {
+                        $message = $response;
+                    }
                 }
-            } else {
-                $this->Flash->error(__('Sorry you are not authorize, ' . $msgto));
+                if (isset($message) && $message['statusCode'] != 200) {
+                    $this->Flash->error(__($message['message']));
+                    return $this->redirect($this->referer());
+                }
+            }/* for invalid Role id */ else {
+                $message['message'] = 'Anauthorized user';
+                $message['statusCode'] = 202;
             }
-        }
+        }/* for invalid request */
     }
 
     /* Function:ajaxLogin()
@@ -85,45 +82,41 @@ class UsersController extends AppController {
         $pageTitle = 'Login';
         $this->set('pageTitle', $pageTitle);
         $this->viewBuilder()->setLayout('');
+        $message = [];
         if ($this->request->is('post')) {
 
-            $this->loadModel('Subscriptions');
-            $user = $this->Users->find()->select(['Users.id', 'Users.user_id', 'role_id', 'is_verify'])->where(['Users.email' => $this->request->data['email'], 'Users.is_active' => 1, 'Users.is_deleted' => 0])->first();
-            if ($user) {
-                /**                 * *** check company staff verify or not  **** */
-                if ($user->role_id == 3 && $user->is_verify == 0) {
-                    echo $msg = "Sorry you are not authorize, plese contact to administrator";
-                    exit;
-                }
+            $user = $this->Users->find()->select(['Users.id', 'Users.first_name', 'Users.last_name', 'Users.email', 'Users.user_id', 'Users.role_id', 'Users.permission_id', 'Users.is_verify', 'Users.is_active', 'Users.email_verification'])->where(['Users.email' => $this->request->data['email'], 'Users.is_deleted' => 0])->first();
+            $role_id = isset($user['role_id']) ? trim($user['role_id']) : '';
 
-                /**                 * *** check company staff verfy or not  **** */
-                if ($user->user_id == 0) {
-                    $userId = $user->id;
-                    $messageUser = 'Please complate payment process fistly.';
-                    $msgto = "plese contact to administrator";
-                } else {
-                    $userId = $user->user_id;
-                    $messageUser = "Company account is not active, please contact to the company";
-                    $msgto = "plese contact to company";
-                }
-                $subscriptions = $this->Subscriptions->find()->where(['Subscriptions.user_id' => $userId, 'Subscriptions.is_registration' => 1])->first();
-                if ($subscriptions) {
-                    $user = $this->Auth->identify();
-                    if ($user) {
-                        if ($user['role_id'] == 2) {
-                            $this->Auth->setUser($user);
-                            echo $msg = "success";
-                        }
+            if ($role_id == 3 || $role_id == 2) {
+                if ($role_id == 2) {
+
+                    $response = $this->ValidateCompanyAndUser->validateCompanyProfle($user);
+                    if ($response['statusCode'] == 200) {
+                        $this->Auth->setUser($user);
+                        $message = $response;
                     } else {
-
-                        echo $msg = "You could not login successfully";
+                        $message = $response;
                     }
-                } else {
-                    echo $msg = $messageUser;
+                } else if ($role_id == 3) {
+
+                    $response = $this->ValidateCompanyAndUser->validateCompanyUserProfle($user);
+                    if ($response['statusCode'] == 200) {
+                        $this->Auth->setUser($user);
+                        $message = $response;
+                    } else {
+                        $message = $response;
+                    }
                 }
-            } else {
-                echo $msg = "Sorry you are not authorize, " . $msgto;
+                if (isset($message) && $message['statusCode'] != 200) {
+                    
+                }
+            }/* for invalid Role id */ else {
+                $message['message'] = 'Anauthorized user';
+                $message['statusCode'] = 202;
             }
+            echo json_encode($message);
+            die;
         }
     }
 
@@ -259,16 +252,41 @@ class UsersController extends AppController {
      * Description: function use for client dashboard    
      * By @Ahsan Ahamad
      * Date : 5 Dec. 2017
+     * Update : 21 Jan. 2018
      */
 
     public function dashboard() {
-        $this->viewBuilder()->setLayout('dashboard');
-        $pageTitle = 'Dashnoard';
+        $pageTitle = 'Dashboard';
         $this->set('pageTitle', $pageTitle);
-        $this->loadModel('Permits');
-        $accessPermits = $this->Permits->find()->contain(['UserLocations', 'Industries', 'Forms'])->where(['Permits.user_id' => $this->userId, 'Permits.permit_status_id' => 2])->all();
-        $this->set(compact('accessPermits'));
+        $loggedCompanyId = Configure::read('LoggedCompanyId');
+        $this->LocationOperations = TableRegistry::get('LocationOperations');
+        $operationList = $this->LocationOperations->getOperationListByUserId($loggedCompanyId);
+        $this->PermitOperations = TableRegistry::get('PermitOperations');
+        $operationList = $this->PermitOperations->getOperationListByOperationId($operationList);
+        if (empty($operationList)) {
+            $operationList[0] = 0;
+        }
+        $this->loadModel('UserLocations');
+        $this->loadModel('Operations');
+        $userLocationList = $this->UserLocations->getUserLocationListByUserId($loggedCompanyId);
+        $userOperationList = $this->Operations->getOperationListById($operationList);
+        $data = $this->LocationOperations->find()
+                ->contain([
+                    'Operations', 'UserLocations',
+                    'Operations.PermitOperations.Permits',
+                    'Operations.PermitOperations.Permits.PermitAgencies.Agencies',
+                ])
+                ->where([
+            'LocationOperations.user_id' => $loggedCompanyId,
+            'LocationOperations.operation_id IN' => $operationList,
+                ])/*
+          ->toArray();prx($data) */;
+        $permitStatusTable = TableRegistry::get('PermitStatus');
+        $permitStatusses = $permitStatusTable->find('list')->toArray();
+        $this->set(compact('data', 'permitStatusses', 'userLocationList', 'userOperationList'));
     }
+
+    
 
     /* Function:profile()
      * Description: function use for show user profile 
@@ -277,8 +295,8 @@ class UsersController extends AppController {
      * Date : 7 Dec. 2017   
      */
 
-    public function profile($id = null) {
-        $this->viewBuilder()->setLayout('dashboard');
+    public function profile($userId = null) {
+        $this->set(compact('userId'));
         $pageTitle = 'Profile ';
         $pageHedding = 'Profile';
         $breadcrumb = array(
@@ -286,17 +304,9 @@ class UsersController extends AppController {
         );
         $this->set(compact('breadcrumb', 'pageTitle', 'pageHedding'));
 
-        $uid = $this->Encryption->decode($id);
-
-        if ($this->Auth->user('role_id') == 3) {
-            $users = $this->Users->find()->where(['Users.id' => $uid])->first();
-            $companyDetails = $this->Users->getCompanyInfo($this->Auth->user('user_id'));
-            $this->set('companyDetails', $companyDetails);
-        } else {
-            $users = $this->Users->find()->contain(['UserLocations'])->where(['Users.id' => $uid])->first();
-        }
-
-        $this->set('users', $users);
+        $userId = $this->Encryption->decode($userId);
+        $userData = $this->Users->getCompanyInfo($userId);
+        $this->set('userData', $userData);
     }
 
     /* Function: editProfile()
@@ -307,80 +317,99 @@ class UsersController extends AppController {
      * Date : 7 Dec. 2017
      */
 
-    public function editProfile($id = null) {
-        $this->viewBuilder()->setLayout('dashboard');
+    public function editProfile($userId = null) {
+        $this->set(compact('userId'));
         $pageTitle = 'Profile | Edit';
         $pageHedding = 'Edit';
         $breadcrumb = array(
             array('label' => 'Profile | Edit')
         );
+        $this->loadModel('UserLocations');
+        $this->loadModel('LocationOperations');
         $this->set(compact('breadcrumb', 'pageTitle', 'pageHedding'));
-        if ($this->request->is('post')) {
 
+        $userId = $this->Encryption->decode($userId);
+        $userData = $this->Users->getCompanyInfo($userId);
+        $this->set('userData', $userData);
+
+        $locationOperationIds = $this->LocationOperations->getOperationIdByLocationId($userData['location_info']->id);
+        $this->set(compact('locationOperationIds'));
+
+        if ($this->request->is('post')) {
             $user['first_name'] = $this->request->data['Contact']['first_name'];
             $user['last_name'] = $this->request->data['Contact']['last_name'];
             $user['position'] = $this->request->data['Contact']['position'];
             $user['email'] = $this->request->data['Contact']['email'];
             $user['phone'] = $this->request->data['Contact']['phone'];
-            if (!empty($this->request->data['logo']['name'])) {
-                $path = 'img/logo';
-                $fineData = $this->Upload->imagesUpload($this->request->data['logo'], $path);
-                $user['logo'] = $fineData;
+            if ($userData['basic_info']->role_id == 2) {
+                if (!empty($this->request->data['logo']['name'])) {
+                    $path = 'img/logo';
+                    $fineData = $this->Upload->uploadImage($this->request->data['logo'], $path);
+                    $user['logo'] = $fineData;
+                }
             }
             if (!empty($this->request->data['profile_image']['name'])) {
                 $path = 'img/profile';
-                $profileData = $this->Upload->imagesUpload($this->request->data['profile_image'], $path);
+                $profileData = $this->Upload->uploadImage($this->request->data['profile_image'], $path);
                 $user['profile_image'] = $profileData;
             }
 
 
-            $users = $this->Users->get($this->request->data['Contact']['id']);
+            $users = $this->Users->get($userId);
             $this->Users->patchEntity($users, $user);
             if (!$users->errors()) {
                 if ($success = $this->Users->save($users)) {
                     /* for save company address */
-                    if (!empty($this->request->data['Company'])) {
+                    if ($userData['basic_info']->role_id == 2) {
+                        if (isset($this->request->data['Company']) && !empty($this->request->data['Company'])) {
+                            $location['address1'] = $this->request->data['Company']['address_1'];
+                            $location['address2'] = $this->request->data['Company']['address_2'];
+                            $location['phone'] = $this->request->data['Company']['phone'];
+                            $location['email'] = $this->request->data['Company']['email'];
+                            $location['email'] = $this->request->data['Company']['email'];
+                            $location['country_id'] = 254;
+                            $location['state_id'] = 154;
+                            $location['is_company'] = 1;
+                            $location['user_id'] = $success->id;
+                            $location['id'] = $userData['location_info']->id;
 
-                        $this->loadModel('UserLocations');
-                        $location['address1'] = $this->request->data['Company']['address_1'];
-                        $location['address2'] = $this->request->data['Company']['address_2'];
-                        $location['phone'] = $this->request->data['Company']['phone'];
-                        $location['email'] = $this->request->data['Company']['email'];
-                        $location['email'] = $this->request->data['Company']['email'];
-                        $location['country_id'] = 254;
-                        $location['state_id'] = 154;
-                        $location['is_company'] = 1;
-                        $location['user_id'] = $success->id;
-                        if (!empty($this->request->data['Company']['id'])) {
-                            $UserLocation = $this->UserLocations->get($this->request->data['Company']['id']);
-                        } else {
-                            $UserLocation = $this->UserLocations->newEntity();
+                            if (isset($this->request->data['is_operation'])) {
+                                $location['is_operation'] = 1;
+                            } else {
+                                $location['is_operation'] = 0;
+                            }
+                            $userLocation = $this->UserLocations->get($location['id']);
+                            $this->UserLocations->patchEntity($userLocation, $location);
+                            $this->UserLocations->save($userLocation);
+
+                            # Save Type of Operation for Company location
+                            if ($location['is_operation'] == 1) {
+                                $this->LocationOperations->updateOperations($userData['basic_info']->id, $userData['location_info']->id, $this->request->data['operation_id']);
+                            } else {
+                                # delete all Assocaited Operation basis on user-location-id
+                                $this->LocationOperations->updateOperations($userData['basic_info']->id, $userData['location_info']->id);
+                            }
                         }
-                        $this->UserLocations->patchEntity($UserLocation, $location);
-                        $this->UserLocations->save($UserLocation);
                     }
-
+                    /* === Added by vipin for  add log=== */
+                    $message = 'Profile updated by ' . $this->loggedusername;
+                    $saveActivityLog = [];
+                    $saveActivityLog['table_id'] = $success->id;
+                    $saveActivityLog['table_name'] = 'Users';
+                    $saveActivityLog['module_name'] = 'Profile Front';
+                    $saveActivityLog['url'] = $this->referer();
+                    $saveActivityLog['message'] = $message;
+                    $saveActivityLog['activity'] = 'Edit';
+                    $this->Custom->saveActivityLog($saveActivityLog);
+                    /* === Added by vipin for  add log=== */
                     $this->Flash->success(__('Profile has been updated successfully.'));
-                    $uid = $this->Encryption->encode($this->request->data['Contact']['id']);
-                    return $this->redirect(['controller' => 'users', 'action' => 'profile', $uid]);
+                    return $this->redirect(['controller' => 'users', 'action' => 'profile', $this->Encryption->encode($userId)]);
                 }
             }
         }
-
-        $uid = $this->Encryption->decode($id);
-        if ($this->Auth->user('role_id') == 3) {
-            $users = $this->Users->find()->where(['Users.id' => $uid])->first();
-            $companyDetails = $this->Users->getCompanyInfo($this->Auth->user('user_id'));
-            $this->set('companyDetails', $companyDetails);
-        } else {
-            $users = $this->Users->find()->contain(['UserLocations'])->where(['Users.id' => $uid])->first();
-        }
-        $this->set('users', $users);
-        $this->loadModel('Industries');
-        $industries = $this->Industries->find('list', ['valueField' => 'name']);
-        $industries->hydrate(false)->select(['Industries.name'])->where(['Industries.is_deleted' => 0, 'Industries.is_active' => 1]);
-        $industryList = $industries->toArray();
-        $this->set(compact('industryList'));
+        $this->loadModel('Operations');
+        $operationList = $this->Operations->getList();
+        $this->set(compact('operationList'));
     }
 
     public function index() {
@@ -395,10 +424,16 @@ class UsersController extends AppController {
 
     public function signup() {
         $this->viewBuilder()->setLayout('login');
-        /* code for send payment */
+
+        $subscriptionPlanId = 3;
+        if (isset($this->request->query['plan'])) {
+            $subscriptionPlanId = $this->Encryption->decode($this->request->query['plan']);
+        }
+        $this->set(compact('subscriptionPlanId'));
 
         if ($this->request->is('post')) {
             set_time_limit(180);
+            /* Save Company/User Data */
             $user['company'] = $this->request->data['Company']['name'];
             $user['first_name'] = $this->request->data['Contact']['first_name'];
             $user['last_name'] = $this->request->data['Contact']['last_name'];
@@ -407,107 +442,116 @@ class UsersController extends AppController {
             $user['phone'] = $this->request->data['Contact']['phone'];
             $user['is_active'] = 0;
             $user['email_verification'] = $this->Custom->token();
-            $user['password'] = (new DefaultPasswordHasher)->hash($this->request->data['Contact']['password']);
+            $user['password'] = $this->request->data['Contact']['password'];
             $user['created'] = date('Y-m-d H:i:s');
+            $user['permission_id'] = 4;
             $users = $this->Users->newEntity($user);
             $this->Users->patchEntity($users, $user);
             if (!$users->errors()) {
                 if ($success = $this->Users->save($users)) {
-                    /* for save company address */
+                    /* Save Company/Default Location */
                     $this->loadModel('UserLocations');
-                    $location['address1'] = $this->request->data['Company']['address_1'];
-                    $location['address2'] = $this->request->data['Company']['address_2'];
-                    $location['phone'] = $this->request->data['Company']['phone'];
-                    $location['email'] = $this->request->data['Company']['email'];
-                    $location['is_company'] = 1;
-                    $location['user_id'] = $success->id;
-                    $UserLocation = $this->UserLocations->newEntity();
-                    $this->UserLocations->patchEntity($UserLocation, $location);
-                    $companyAddress = $this->UserLocations->save($UserLocation);
-                    /* code for saved User industries */
-                    $this->loadModel('LocationIndustries');
-                    foreach ($this->request->data['industry_id'] as $industry) {
-                        $companyrIndustry['industry_id'] = $industry;
-                        $companyrIndustry['user_location_id'] = $companyAddress->id;
-                        $companyrIndustry['user_id'] = $success->id;
-                        $companyIndustries = $this->LocationIndustries->newEntity();
-                        $this->LocationIndustries->patchEntity($companyIndustries, $companyrIndustry);
-                        $this->LocationIndustries->save($companyIndustries);
+                    $companyOperation['title'] = 'Company (Default)';
+                    $companyOperation['address1'] = $this->request->data['Company']['address_1'];
+                    $companyOperation['address2'] = $this->request->data['Company']['address_2'];
+                    $companyOperation['phone'] = $this->request->data['Company']['phone'];
+                    $companyOperation['email'] = $this->request->data['Company']['email'];
+                    $companyOperation['user_id'] = $success->id;
+                    $companyOperation['created'] = date('Y-m-d H:i:s');
+                    if (isset($this->request->data['Company']['is_operation']) && !empty($this->request->data['Company']['is_operation'])) {
+                        $companyOperation['is_operation'] = 1;
+                    } else {
+                        $companyOperation['is_operation'] = 0;
                     }
 
+                    $companyOperation['is_company'] = 1;
+                    $companyOperation['country_id'] = 254; // US
+                    $companyOperation['state_id'] = 154;  //New York
+                    $companyLocations = $this->UserLocations->newEntity();
+                    $this->UserLocations->patchEntity($companyLocations, $companyOperation);
+                    $companyLocations = $this->UserLocations->save($companyLocations);
 
+                    /* Save Type of Operation for Company Location */
+                    $this->loadModel('LocationOperations');
+                    if ($companyOperation['is_operation'] == 1) {
+                        $this->LocationOperations->saveOperations($success->id, $companyLocations->id, $this->request->data['Company']['operation_id']);
+                    }
 
-                    /* for save multiple address  */
-                    $count = count($this->request->data['Address']['title']);
+                    /* Save Additonal Location along with  Type of Operations */
+                    if (isset($this->request->data['Address']['title'])) {
+                        $locationCount = count($this->request->data['Address']['title']);
+                        for ($count = 0; $count < $locationCount; $count++) {
+                            $additionalLocation = [];
+                            $additionalLocation['title'] = $this->request->data['Address']['title'][$count];
+                            $additionalLocation['address1'] = $this->request->data['Address']['address_1'][$count];
+                            $additionalLocation['address2'] = $this->request->data['Address']['address_2'][$count];
+                            $additionalLocation['phone'] = $this->request->data['Address']['phone'][$count];
+                            $additionalLocation['email'] = $this->request->data['Address']['email'][$count];
+                            $additionalLocation['user_id'] = $success->id;
+                            $additionalLocation['created'] = date('Y-m-d H:i:s');
+                            if (isset($this->request->data['is_operation'])) {
+                                $additionalLocation['is_operation'] = 1;
+                            } else {
+                                $this->request->data['is_operation'] = 0;
+                            }
+                            $additionalLocation['is_company'] = 0;
+                            $additionalLocation['country_id'] = 254; //US
+                            $additionalLocation['state_id'] = 154; //New York                        
+                            $additionalLocations = $this->UserLocations->newEntity();
+                            $this->UserLocations->patchEntity($additionalLocations, $additionalLocation);
+                            $additionalLocations = $this->UserLocations->save($additionalLocations);
 
-                    for ($number = 0; $number < $count; $number++) {
-                        $locationAddress['country_id'] = 254;
-                        $locationAddress['state_id'] = 154;
-                        $locationAddress['address1'] = $this->request->data['Address']['title'][$number];
-                        $locationAddress['address1'] = $this->request->data['Address']['address_1'][$number];
-                        $locationAddress['address2'] = $this->request->data['Address']['address_2'][$number];
-                        $locationAddress['phone'] = $this->request->data['Address']['phone'][$number];
-                        $locationAddress['email'] = $this->request->data['Address']['email'][$number];
-                        $locationAddress['user_id'] = $success->id;
-                        $locationAddress['industry_id'] = $this->request->data['industry_id'][$number];
-
-                        $UserLocationAddress = $this->UserLocations->newEntity();
-                        $this->UserLocations->patchEntity($UserLocationAddress, $locationAddress);
-                        $additionalAddress = $this->UserLocations->save($UserLocationAddress);
-
-                        /* code for saved User industries */
-                        $addressOperations = $this->request->data['Address']['operations'][$number];
-                        $addressOperations = explode(',', $addressOperations);
-                        if (is_array($addressOperations)) {
-                            foreach ($addressOperations as $operation) {
-                                $addressIndustry['industry_id'] = $operation;
-                                $addressIndustry['user_location_id'] = $additionalAddress->id;
-                                $addressIndustry['user_id'] = $success->id;
-                                $addressIndustries = $this->LocationIndustries->newEntity();
-                                $this->LocationIndustries->patchEntity($addressIndustries, $addressIndustry);
-                                $this->LocationIndustries->save($addressIndustries);
+                            /* Save Type of Operation for Additional Location */
+                            $additionalOperations = $this->request->data['Address']['operations'][$count];
+                            $additionalOperations = explode(',', $additionalOperations);
+                            if (is_array($additionalOperations)) {
+                                $this->LocationOperations->saveOperations($success->id, $additionalLocations->id, $additionalOperations);
                             }
                         }
                     }
 
                     /* code for send email verfication */
-
-                    $data = array('token' => $success->email_verification, 'name' => $this->request->data['Contact']['first_name']);
-                    $to = $this->request->data['Contact']['email'];
-                    $template = 'email_verfication';
-                    $subject = 'Wellcome NYCompliance';
-                    $send = $this->sendEmail($data, $to, $template, $subject);
-                    /* send email for payment */
-                    $userId = base64_encode($success->id);
-                    $token = $this->Custom->token();
-                    $data = array('token' => $token, 'userId' => $userId, 'name' => $this->request->data['Contact']['first_name'], 'url' => BASE_URL . '/payments/index/' . $userId);
-                    $to = $this->request->data['Contact']['email'];
-                    $template = 'for_payment';
-                    $subject = 'Payment';
-                    $send = $this->sendEmail($data, $to, $template, $subject);
-                    /* code for send payment  */
-                    $locationCount = $this->UserLocations->getCountByUserId($success->id);
-                    $amount = 500;
-                    if ($locationCount > 5) {
-                        $amount = 1000;
-                    } else if ($locationCount <= 5 && $locationCount > 3) {
-                        $amount = 750;
+                    $this->loadModel('EmailTemplates');
+                    $token = $user['email_verification'];
+                    $link = HTTP_ROOT . 'users/emailVerification/' . $token;
+                    $emailTemplate = $this->EmailTemplates->find()->where(['id' => 3])->first();
+                    $emailData = $emailTemplate->description;
+                    if (!empty($this->request->data['Contact']['last_name'])) {
+                        $fullName = $this->request->data['Contact']['first_name'] . " " . $this->request->data['Contact']['last_name'];
+                    } else {
+                        $fullName = $this->request->data['Contact']['first_name'];
                     }
+                    $emailData = str_replace('{USER_NAME}', $fullName, $emailData);
+                    $emailData = str_replace('{LINK}', $link, $emailData);
+                    $subject = $emailTemplate->subject;
+                    $to = $this->request->data['Contact']['email'];
 
+                    $this->_sendSmtpMail($subject, $emailData, $to);
+                    // Make payment
                     $cardDetails['cardNumber'] = $this->request->data['Payment']['card_number'];
                     $cardDetails['cvv'] = $this->request->data['Payment']['cvv'];
                     $expiry = explode('/', $this->request->data['Payment']['expiry']);
                     $cardDetails['expireMonth'] = $expiry[0];
                     $cardDetails['expireYear'] = $expiry[1];
                     $cardDetails['cardholder'] = $this->request->data['Payment']['card_holder'];
-                    $cardDetails['location'] = $locationCount;
-                    $cardDetails['amount'] = $amount;
-                    // make payment 
-                    $paymentResponse = $this->Payment->paypalRecurring($success->id, $cardDetails);
+                    $cardDetails['location'] = $this->UserLocations->getCountByUserId($success->id);
+                    // Make payment via Stripe
+                    $paymentResponse = $this->Stripe->createSubscription($success->id, $cardDetails, $this->request->data['SubscriptionPlan']['id']);
+                    // Make payment via Paypal
+                    //$paymentResponse = $this->Paypal->createSubscription($success->id, $cardDetails, $this->request->data['SubscriptionPlan']['id']);
                     if ($paymentResponse['status']) {
                         $paymentResponse['status'] = 'done';
                     } else {
                         $paymentResponse['status'] = '';
+                        /* send email for payment */
+                        $emailTemplate = $this->EmailTemplates->find()->where(['id' => 5])->first();
+                        $emailData = $emailTemplate->description;
+                        $subject = $emailTemplate->subject;
+                        $userId = base64_encode($success->id);
+                        $url = HTTP_ROOT . 'payments/index/' . $userId;
+                        $emailData = str_replace('{USER_NAME}', $fullName, $emailData);
+                        $emailData = str_replace('{LINK}', $url, $emailData);
+                        $this->_sendSmtpMail($subject, $emailData, $to);
                     }
                     return $this->redirect(['controller' => 'users', 'action' => 'registration', $this->Encryption->encode($success->id), 'company', $paymentResponse['status']]);
                 } else {
@@ -517,15 +561,17 @@ class UsersController extends AppController {
                 $this->Flash->error(__($this->Custom->multipleFlash($users->errors())));
             }
         }
-
-        $this->loadModel('Industries');
-        $industries = $this->Industries->find('list', ['valueField' => 'name']);
-        $industries->hydrate(false)->select(['Industries.name'])->where(['Industries.is_deleted' => 0, 'Industries.is_active' => 1]);
-        $industryList = $industries->toArray();
-        $this->set(compact('industryList'));
+        $this->loadModel('Operations');
+        $operationList = $this->Operations->getList();
+        $this->set(compact('operationList'));
 
         $companyList = $this->Users->getCompanyList();
         $this->set(compact('companyList'));
+
+        # Get Subscription-plan data
+        $this->loadModel('SubscriptionPlans');
+        $subscriptionPlans = $this->SubscriptionPlans->getAllPlans();
+        $this->set(compact('subscriptionPlans'));
     }
 
     /* Function: EmployeeSignup()
@@ -548,27 +594,55 @@ class UsersController extends AppController {
             $user['email'] = $this->request->data['Employee']['email'];
             $user['phone'] = $this->request->data['Employee']['phone'];
             $user['is_active'] = 0;
+            $user['permission_id'] = 6;
             $user['email_verification'] = $this->Custom->token();
-            $user['password'] = (new DefaultPasswordHasher)->hash($this->request->data['Employee']['password']);
+            $user['password'] = $this->request->data['Employee']['password'];
             $user['created'] = date('Y-m-d H:i:s');
             $users = $this->Users->newEntity($user);
             $this->Users->patchEntity($users, $user);
             if (!$users->errors()) {
                 if ($success = $this->Users->save($users)) {
                     /* code for send email verfication to employee */
-                    $data = array('token' => $success->email_verification, 'name' => $this->request->data['Employee']['first_name']);
+                    $this->loadModel('EmailTemplates');
+                    $token = $success->email_verification;
+                    $link = BASE_URL . '/users/emailVerification/' . $token;
+                    $emailTemplate = $this->EmailTemplates->find()->where(['id' => 3])->first();
+                    $emailData = $emailTemplate->description;
+                    if (!empty($this->request->data['Employee']['last_name'])) {
+                        $fullName = $this->request->data['Employee']['first_name'] . " " . $this->request->data['Employee']['last_name'];
+                    } else {
+                        $fullName = $this->request->data['Employee']['first_name'];
+                    }
+                    $emailData = str_replace('{USER_NAME}', $fullName, $emailData);
+                    $emailData = str_replace('{LINK}', $link, $emailData);
+                    $subject = $emailTemplate->subject;
                     $to = $this->request->data['Employee']['email'];
-                    $template = 'email_verfication';
-                    $subject = 'Wellcome NYCompliance';
-                    $send = $this->sendEmail($data, $to, $template, $subject);
+                    $this->_sendSmtpMail($subject, $emailData, $to);
+//                    $data = array('token' => $success->email_verification, 'name' => $this->request->data['Employee']['first_name']);
+//                    $to = $this->request->data['Employee']['email'];
+//                    $template = 3;
+//                    $subject = 'Wellcome NYCompliance';
+//                    $send = $this->sendEmail($data, $to, $template, $subject);
                     /* code for send email to comany */
-                    $comaony = $this->Users->find()->select(['first_name', 'email'])->where(['id' => $this->request->data['Employee']['company_id']])->first();
-
-                    $data = array('name' => $comaony['first_name'], 'empalyee' => $this->request->data['Employee']['first_name'] . ' ' . $this->request->data['Employee']['last_name']);
-                    $to = $comaony['email'];
-                    $template = 'new_employee';
-                    $subject = 'Add New Employee';
-                    $send = $this->sendEmail($data, $to, $template, $subject);
+                    $company = $this->Users->find()->select(['first_name', 'last_name', 'email'])->where(['id' => $this->request->data['Employee']['company_id']])->first();
+                    $emailTemplate = $this->EmailTemplates->find()->where(['id' => 6])->first();
+                    $emailData = $emailTemplate->description;
+                    if (!empty($company['last_name'])) {
+                        $cfullName = $company['first_name'] . " " . $company['last_name'];
+                    } else {
+                        $cfullName = $company['first_name'];
+                    }
+                    $emailData = str_replace('{LINK}', BASE_URL, $emailData);
+                    $emailData = str_replace('{USER_NAME}', $cfullName, $emailData);
+                    $emailData = str_replace('{EMPLOYEE_NAME}', $fullName, $emailData);
+                    $subject = $emailTemplate->subject;
+                    $to = $company['email'];
+                    $this->_sendSmtpMail($subject, $emailData, $to);
+//                    $data = array('name' => $comaony['first_name'], 'empalyee' => $this->request->data['Employee']['first_name'] . ' ' . $this->request->data['Employee']['last_name']);
+//                    $to = $company['email'];
+//                    $template = 6;
+//                    $subject = 'Add New Employee';
+//                    $send = $this->sendEmail($data, $to, $template, $subject);
                     return $this->redirect(['controller' => 'users', 'action' => 'registration', $this->Encryption->encode($success->id), 'employee']);
                 } else {
                     $this->Flash->error(__('Registration could not be success'));
@@ -636,7 +710,7 @@ class UsersController extends AppController {
         $responseFlag = false;
         if ($verificationData) {
             $data = array('token' => $verificationData->email_verification, 'name' => $verificationData->first_name);
-            $responseFlag = $this->sendEmail($data, $verificationData->email, 'email_verfication', 'Email Verification');
+            $responseFlag = $this->sendEmail($data, $verificationData->email, 3, 'Email Verification');
         }
         $this->set(compact('userId', 'verificationData', 'responseFlag'));
     }
@@ -651,6 +725,7 @@ class UsersController extends AppController {
     public function emailVerification($emailVerification = null) {
         $this->viewBuilder()->setLayout('login');
         $verificationData = $this->Users->getIdByEmailVerification($emailVerification);
+        //prx($verificationData);
         $responseFlag = false;
         if ($verificationData) {
             $userTable = TableRegistry::get('Users');

@@ -11,6 +11,10 @@ class ProfessionalAssistancesTable extends Table {
         parent::initialize($config);
         $this->addBehavior('Timestamp');
         $this->setTable('professional_assistances');
+        $this->belongsTo('Users', [
+            'className' => 'Users',
+            'foreignKey' => 'company_id'
+        ]);
     }
 
     public function validationAdd(Validator $validator) {

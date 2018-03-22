@@ -168,3 +168,5 @@ jQuery.validator.addMethod("recurringLimit", function (value, element, params) {
 }, function(params, element) {
     return "Maximum transactions for " + params.paymentGateway + " are " + params.transactionLimit;
 });  
+
+

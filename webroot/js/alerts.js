@@ -11,15 +11,32 @@ $(function () {
             alert_type_id: "required",
             "company_id": "required",
             "industry_id": "required",
-            title: "required",
-            notes: "required",
+          "title":{
+             required :true, 
+             maxlength: 40,
+         },
+           
+        "notes": {
+             maxlength: 160,
+         },
+            interval: {
+            number: true
+     }
         },
         messages: {
             alert_type_id: "Please select alert type",
             "company_id": "Please select companies",
             "industry_id": "Please select industries",
-            title: "Please enter a title",
-            notes: "Please enter a notes"
+           "title": {
+                required: "Please enter title",
+                maxlength: "Maximum characters are 40.",
+            },
+        "notes": {
+                maxlength: "Maximum characters are 120.",
+            },
+             interval: {
+            number: "Please enter only number"
+     }
         },
         submitHandler: function (form) {
             form.submit();
@@ -30,11 +47,11 @@ $(function () {
     $(".alertTypeFront").on('change', function () {
 //  id 3 for company 
         if ($(".alertTypeFront").val() == 3) {
-           jQuery('.multiselect').attr("disabled", false);
-           jQuery('.multiselect').removeClass("disabled");
+           jQuery('.staffList').attr("disabled", false);
+           jQuery('.staffList').removeClass("disabled");
         }else{
-               jQuery('.multiselect').attr("disabled", true);
-           jQuery('.multiselect').addClass("disabled");
+            jQuery('.staffList').attr("disabled", true);
+           jQuery('.staffList').addClass("disabled");
             
         }
    });
@@ -67,20 +84,11 @@ $(function () {
     });
 
 
-});
-
-
 $('#chkRepetition').on('click',function(){    
     enableDisableAlert();
 });
 
-/*  @@Function:enableDisableAlertInterval()
- * @Description: enable disable alert related to inertval  ajax
- * @param type: chkRepetition
- * @By @Ahsan Ahamad
- * @Date : 12th Dec. 2017
- */ 
-function enableDisableAlertInterval(chkRepetition){
+function enableDisableAlert(chkRepetition){
     if($('#chkRepetition').prop('checked') == true){
         $('#interval').attr('disabled',false);
         $('#intervalType').attr('disabled',false);
@@ -90,17 +98,10 @@ function enableDisableAlertInterval(chkRepetition){
     }
 }
 $('.permitRepetition').on('click',function(){    
-    enableDisableAlert();
+    enableDisableAlertPermit();
 });
 
-/*  @@Function:enableDisableAlert()
- * @Description: enable disable alert related to permit ajax
- * @param type: chkRepetition
- * @By @Ahsan Ahamad
- * @Date : 12th Dec. 2017
- */ 
-
-function enableDisableAlert(chkRepetition){
+function enableDisableAlertPermit(chkRepetition){
     if($('.permitRepetition').prop('checked') == true){
         $('#interval').attr('disabled',false);
         $('#intervalType').attr('disabled',false);
@@ -109,3 +110,6 @@ function enableDisableAlert(chkRepetition){
         $('#intervalType').attr('disabled',true);
     }
 }
+});
+
+

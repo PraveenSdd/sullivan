@@ -28,12 +28,6 @@
                             </div>
                         </div>
                         
-                         <div class="form-group">
-                            <label for="CategoryName" class="col-sm-3 control-label">Image</label>
-                            <div class="col-sm-9 padding-top-5">
-                            <?php echo $this->Html->image($home['image'],['style'=>'width: 273px;height: 170px;']); ?>
-                            </div>
-                        </div>
                     </div>
                    
 

@@ -3,186 +3,220 @@
     <div class="col-md-12">
         <div class="box box-primary">
             <div class="box-header with-border padding-top-5">
-            <?php  echo $this->Form->create('Alerts', array('url' => array('controller' => 'alerts', 'action' => 'add'),'id'=>'add_alerts',' method'=>'post','class'=>'form-horizontal')); ?>
-                <div class="col-md-8">
+                <?php echo $this->Form->create('Alert', array('url' => array('controller' => 'alerts', 'action' => 'add'), 'id' => 'frmAlert', ' method' => 'post', 'class' => 'form-horizontal frmAlert')); ?>
+                <div class="col-md-12">
                     <div class="box-body">
-                        <div class="form-group">
-                            <label for="CategoryName" class="col-sm-3 control-label">Alert Type<span class="text-danger">*</span></label>
-                            <div class="col-sm-9">
+                        <div class="row margin-top-15">
+                            <div class="col-sm-6">
+                                <div class="form-group">
+                                    <label for="CategoryName" class="col-sm-3 control-label">Alert Type<span class="text-danger">*</span></label>
+                                    <div class="col-sm-9">
                                     <?php 
-                                      echo $this->Form->input('alert_type_id', array(
+                                      echo $this->Form->input('Alert.alert_type_id', array(
                                          'type' => 'select',
-                                         'options' => $alertTypesList,
+                                         'options' => $alertTypeList,
                                           'empty'=>'Please select alert type',
                                           'label' => false,
-                                          'class'=> 'form-control select2 required alertType',
+                                          'class'=> 'form-control select2 required inp-alert-type',
 
                                           ));
                                        ?>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-6">
+                                <div class="form-group">
+                                    <label for="usersName" class="col-sm-3 control-label">Sullivan Staffs</label>
+                                    <div class="col-sm-9">
+                                <?php 
+                                    echo $this->Form->input('Alert.staff_id', array(
+                                       'type' => 'select',
+                                       'options' => $subAdminList,
+                                        'multiple'=>true,
+                                        'label' => false,
+                                        'disabled','disabled',
+                                        'class'=> 'form-control select2 inp-alert-staff',
+                                        'data-alert-staff-id'=>''
+                                     
+                                        ));
+                                     ?>
+
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                        <div class="form-group">
-                            <label for="CategoryName" class="col-sm-3 control-label">Company</label>
-                            <div class="col-sm-9">
+                        <div class="row margin-top-15">
+                            <div class="col-sm-6">
+                                <div class="form-group">
+                                    <label for="CategoryName" class="col-sm-3 control-label">Company</label>
+                                    <div class="col-sm-9">
                                  <?php 
-                                    echo $this->Form->input('company_id', array(
+                                    echo $this->Form->input('Alert.company_id', array(
                                        'type' => 'select',
-                                       'options' => $companiesLists,
+                                       'options' => $companyList,
                                         'multiple'=>true,
                                         'label' => false,
                                         'disabled','disabled',
-                                        'class'=> 'form-control select2',
-                                        'id'=>'companiesList',
-                                      
+                                        'class'=> 'form-control select2  inp-alert-company',
+                                      'data-alert-company-id'=>''
                                         ));
                                      ?>
+                                    </div>
+                                </div>
                             </div>
-                        </div>
-                   
-                        <div class="form-group">
-                            <label for="CategoryName" class="col-sm-3 control-label">Operations</label>
-                            <div class="col-sm-9">
+                            <div class="col-sm-6">
+                                <div class="form-group">
+                                    <label for="CategoryName" class="col-sm-3 control-label">Operations</label>
+                                    <div class="col-sm-9">
                                 <?php 
-                                    echo $this->Form->input('industry_id', array(
+                                    echo $this->Form->input('Alert.operation_id', array(
                                        'type' => 'select',
-                                       'options' => $operationsLists,
+                                       'options' => $operationList,
                                         'multiple'=>true,
                                         'label' => false,
                                         'disabled','disabled',
-                                        'class'=> 'form-control select2',
-                                        'id'=>'industriesList',
-                                     
+                                        'class'=> 'form-control select2 inp-alert-operation',
+                                     'data-alert-operation-id'=>''
                                         ));
                                      ?>
 
+                                    </div>
+                                </div>  
                             </div>
                         </div>
-                        <?php if($Authuser['role_id']==1){?>
-                        <div class="form-group">
-                            <label for="usersName" class="col-sm-3 control-label">Sullivan Staffs</label>
-                            <div class="col-sm-9">
-                                <?php 
-                                    echo $this->Form->input('staff_id', array(
-                                       'type' => 'select',
-                                       'options' => $staffLists,
-                                        'multiple'=>true,
-                                        'label' => false,
-                                        'disabled','disabled',
-                                        'class'=> 'form-control select2',
-                                        'id'=>'staffList',
-                                     
-                                        ));
-                                     ?>
-
-                            </div>
-                        </div>
-                        <?php } ?>
-                        <div class="form-group">
-                            <label for="CategoryName" class="col-sm-3 control-label">Title<span class="text-danger">*</span></label>
-                            <div class="col-sm-9">
-                            <?php echo $this->Form->input('title', array(
+                        <div class="row margin-top-15">
+                            <div class="col-sm-6">
+                                <div class="form-group">
+                                    <label for="CategoryName" class="col-sm-3 control-label">Title<span class="text-danger">*</span></label>
+                                    <div class="col-sm-9">
+                            <?php echo $this->Form->input('Alert.title', array(
                                                   'placeholder'=>'Title',
-                                                  'class'=>'form-control required',
+                                                  'class'=>'form-control required inp-alert-title',
+                                                  'label' => false,
+                                                  'maxlength'=>40,
+                                                 ));  
+                                              ?>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-6">
+                                <div class="form-group">
+                                    <label for="CategoryName" class="col-sm-3 control-label">Date</label>
+                                    <div class="col-sm-9">
+                                <?php echo $this->Form->input('Alert.date', array(
+                                                  'placeholder'=>'MM-DD-YYYY',
+                                                  'class'=>'form-control inp-date-picker inp-alert-date',
                                                   'label' => false,
                                                  ));  
                                               ?>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                        <div class="form-group">
-                            <label for="CategoryName" class="col-sm-3 control-label">Notes<span class="text-danger">*</span></label>
-                            <div class="col-sm-9">
+                        <div class="row margin-top-15">
+                            <div class="col-sm-6">
+                                <div class="form-group">
+
+                                    <label for="CategoryName" class="col-sm-3 control-label">Time</label>
+                                    <div class="col-sm-9">
+                                <?php echo $this->Form->input('Alert.time', array(
+                                                  'placeholder'=>'HH:MM AM/PM',
+                                                  'class'=>'form-control inp-time-picker  inp-alert-time',
+                                                  'label' => false,
+                                                 ));  
+                                              ?>
+
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-6">
+                                <div class="form-group">
+                                    <label for="CategoryName" class="col-sm-3 control-label">Is Repeat</label>
+                                    <div class="col-sm-9">
+                                        <div class="col-sm-1">
+                                            <?php
+                                            echo $this->Form->input('Alert.is_repeated', array(
+                                                'type' => 'checkbox',
+                                                'class' => 'inp-alert-repeat',
+                                                'label' => false,
+                                            ));
+                                            ?>
+                                        </div>
+                                        <div class="col-sm-4">
+                                <?php 
+                                        echo $this->Form->input('Alert.interval_value', array(
+                                                  'label' => false,
+                                                  //'disabled'=>'disabled',
+                                                   'class'=>'form-control inp-integer inp-alert-interval',
+                                                   'maxlength'=>2
+                                                 ));  
+                                              ?>
+                                        </div>
+                                        <div class="col-sm-6">
+                                     <?php 
+                                        echo $this->Form->input('Alert.interval_type', array(
+                                       'type' => 'select',
+                                        'label' => false,
+                                        //'disabled'=>'disabled',
+                                        'options' => ['Days'=>'Days','Weeks'=>'Weeks','Months'=>'Months'],
+                                         'class'=>'form-control  inp-alert-interval-type'   
+                                        
+                                        ));
+                                     ?>
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+
+                        </div>
+                        <div class="row margin-top-15">
+                            <div class="col-sm-6">
+                                <div class="form-group">
+                                    <label for="CategoryName" class="col-sm-3 control-label">Notes<span class="text-danger">*</span></label>
+                                    <div class="col-sm-9">
                                 <?php echo $this->Form->textarea(
-                                        'notes',
+                                        'Alert.notes',
                                         array(
                                             'placeholder'=>'Notes',
-                                            'class'=>'form-control',
+                                            'class'=>'form-control inp-alert-notes',
                                             'label' => 'false',
                                               'rows'=>"5",
+                                            'maxlength'=>160,
                                            ));  
                                         ?>
-                            </div>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="CategoryName" class="col-sm-3 control-label">Date</label>
-                            <div class="col-sm-9">
-                                <?php echo $this->Form->input('date', array(
-                                                  'placeholder'=>'mm-dd-yyyy',
-                                                  'class'=>'form-control datepicker',
-                                                  'label' => false,
-                                                 ));  
-                                              ?>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label for="CategoryName" class="col-sm-3 control-label">Time</label>
-                            <div class="col-sm-9">
-                                <?php echo $this->Form->input('time', array(
-                                                  'placeholder'=>'hh:mm',
-                                                  'class'=>'form-control time',
-                                                  'label' => false,
-                                                 ));  
-                                              ?>
-                                
-                            </div>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="CategoryName" class="col-sm-3 control-label">Repetition</label>
-                            <div class="col-sm-9">
-                                <div class="col-sm-1">
-                                 <?php echo $this->Form->input('is_repeated', array(
-                                                'type'=>'checkbox',
-                                                  'class'=>'checkbox',
-                                                  'label' => false,
-                                                    'div'=>false,
-                                                    'legend'=>false,
-                                                    'id'=>'chkRepetition',
-                                                    'hiddenField'=>false
-                                     
-                                                    
-                                                 ));  
-                                              ?>
-                                
+                                    </div>
                                 </div>
-                                <?php echo $this->Form->input('interval', array(
-                                                   'class'=>'col-sm-3',
+                            </div>
+                            <div class="col-sm-6">
+                                <div class="form-group">
+                                    <label for="CategoryName" class="col-sm-3 control-label">End Date</label>
+                                    <div class="col-sm-9">
+                                <?php echo $this->Form->input('Alert.alert_end_date', array(
+                                                  'placeholder'=>'MM-DD-YYYY',
+                                                  'class'=>'form-control inp-date-picker inp-alert-end-date',
                                                   'label' => false,
-                                                    'div'=>false,
-                                                    'legend'=>false,
-                                                    'id'=>'interval',
-                                                    'disabled'=>'disabled'
-                                     
-                                                    
                                                  ));  
                                               ?>
-                                &nbsp;&nbsp;
-                                <?php 
-                                        echo $this->Form->input('interwell_type', array(
-                                       'type' => 'select',
-                                        'label' => false,
-                                        'disabled'=>'disabled',
-                                        'options' => array('Days'=>'Days','Weeks'=>'Weeks','Months'=>'Months'),
-                                        'id'=>'enterWellType',
-                                        ));?>
-                              
-                                  
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    <div class="box-footer button-form-sub">
+                        <div class="box-footer button-form-sub">
                           <?php echo $this->Html->link('Cancel',['controller'=>'alerts','action'=>'index'],array('class'=>'btn btn-warning','escape' => false)); ?> &nbsp;&nbsp;
  <?php echo $this->Form->button('Submit', array('type'=>'submit','class'=>'btn btn-primary')); ?>
-                       
+
+                        </div>
                     </div>
                 </div>
              <?php echo $this->Form->end();?>
+
             </div>
         </div>
     </div>
 </div>
+<?= $this->Html->script(['backend/alert']);?>
 
-<?= $this->Html->script(['alerts']);?>
 
 
 

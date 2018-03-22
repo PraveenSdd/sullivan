@@ -38,7 +38,6 @@ class FaqsController extends AppController {
      */
 
     public function index() {
-        $this->viewBuilder()->setLayout('dashboard');
         $pageTitle = 'FAQ';
         $pageHedding = 'FAQ';
         $breadcrumb = array(

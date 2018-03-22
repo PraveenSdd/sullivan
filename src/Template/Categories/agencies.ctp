@@ -1,7 +1,7 @@
 <?php ?>
 <div class="main-content clearfix">
     <h4 class="pull-left"> 
-            <?php echo $this->element('frontend/breadcrumb'); ?>      
+            <?php echo $this->element('layout/frontend/default/breadcrumb'); ?>      
     </h4>
 
     <div class="clearfix"></div>

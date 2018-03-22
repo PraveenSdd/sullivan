@@ -13,6 +13,7 @@ class ComposerStaticInit888b232dd9172665ba06afdcf59050c8
         'ede59e3a405fb689cd1cebb7bb1db3fb' => __DIR__ . '/..' . '/cakephp/cakephp/src/Collection/functions.php',
         '90236b492da7ca2983a2ad6e33e4152e' => __DIR__ . '/..' . '/cakephp/cakephp/src/I18n/functions.php',
         'b1fc73705e1bec51cd2b20a32cf1c60a' => __DIR__ . '/..' . '/cakephp/cakephp/src/Utility/bootstrap.php',
+        '72579e7bd17821bb1321b87411366eae' => __DIR__ . '/..' . '/illuminate/support/helpers.php',
         '667aeda72477189d0494fecd327c3641' => __DIR__ . '/..' . '/symfony/var-dumper/Resources/functions/dump.php',
         'e7223560d890eab89cda23685e711e2c' => __DIR__ . '/..' . '/psy/psysh/src/Psy/functions.php',
     );
@@ -31,6 +32,7 @@ class ComposerStaticInit888b232dd9172665ba06afdcf59050c8
             'Symfony\\Polyfill\\Mbstring\\' => 26,
             'Symfony\\Component\\Yaml\\' => 23,
             'Symfony\\Component\\VarDumper\\' => 28,
+            'Symfony\\Component\\Translation\\' => 30,
             'Symfony\\Component\\Process\\' => 26,
             'Symfony\\Component\\Finder\\' => 25,
             'Symfony\\Component\\Filesystem\\' => 29,
@@ -44,8 +46,10 @@ class ComposerStaticInit888b232dd9172665ba06afdcf59050c8
         'P' => 
         array (
             'Psy\\' => 4,
+            'Psr\\SimpleCache\\' => 16,
             'Psr\\Log\\' => 8,
             'Psr\\Http\\Message\\' => 17,
+            'Psr\\Container\\' => 14,
             'PhpParser\\' => 10,
             'Phinx\\' => 6,
         ),
@@ -58,8 +62,19 @@ class ComposerStaticInit888b232dd9172665ba06afdcf59050c8
         array (
             'JsonSchema\\' => 11,
         ),
+        'I' => 
+        array (
+            'Illuminate\\Support\\' => 19,
+            'Illuminate\\Contracts\\' => 21,
+            'Illuminate\\Config\\' => 18,
+        ),
+        'G' => 
+        array (
+            'Gufy\\PdfToHtml\\' => 15,
+        ),
         'D' => 
         array (
+            'Doctrine\\Common\\Inflector\\' => 26,
             'DebugKit\\Test\\Fixture\\' => 22,
             'DebugKit\\' => 9,
         ),
@@ -69,6 +84,7 @@ class ComposerStaticInit888b232dd9172665ba06afdcf59050c8
             'Composer\\Semver\\' => 16,
             'Composer\\CaBundle\\' => 18,
             'Composer\\' => 9,
+            'Carbon\\' => 7,
             'Cake\\Test\\' => 10,
             'Cake\\Composer\\' => 14,
             'Cake\\Chronos\\' => 13,
@@ -82,6 +98,7 @@ class ComposerStaticInit888b232dd9172665ba06afdcf59050c8
         'A' => 
         array (
             'Aura\\Intl\\' => 10,
+            'App\\Vendor\\' => 11,
             'App\\Test\\' => 9,
             'App\\' => 4,
         ),
@@ -107,6 +124,10 @@ class ComposerStaticInit888b232dd9172665ba06afdcf59050c8
         'Symfony\\Component\\VarDumper\\' => 
         array (
             0 => __DIR__ . '/..' . '/symfony/var-dumper',
+        ),
+        'Symfony\\Component\\Translation\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/symfony/translation',
         ),
         'Symfony\\Component\\Process\\' => 
         array (
@@ -148,6 +169,10 @@ class ComposerStaticInit888b232dd9172665ba06afdcf59050c8
         array (
             0 => __DIR__ . '/..' . '/psy/psysh/src/Psy',
         ),
+        'Psr\\SimpleCache\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/psr/simple-cache/src',
+        ),
         'Psr\\Log\\' => 
         array (
             0 => __DIR__ . '/..' . '/psr/log/Psr/Log',
@@ -155,6 +180,10 @@ class ComposerStaticInit888b232dd9172665ba06afdcf59050c8
         'Psr\\Http\\Message\\' => 
         array (
             0 => __DIR__ . '/..' . '/psr/http-message/src',
+        ),
+        'Psr\\Container\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/psr/container/src',
         ),
         'PhpParser\\' => 
         array (
@@ -175,6 +204,26 @@ class ComposerStaticInit888b232dd9172665ba06afdcf59050c8
         'JsonSchema\\' => 
         array (
             0 => __DIR__ . '/..' . '/justinrainbow/json-schema/src/JsonSchema',
+        ),
+        'Illuminate\\Support\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/illuminate/support',
+        ),
+        'Illuminate\\Contracts\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/illuminate/contracts',
+        ),
+        'Illuminate\\Config\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/illuminate/config',
+        ),
+        'Gufy\\PdfToHtml\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/gufy/pdftohtml-php/src',
+        ),
+        'Doctrine\\Common\\Inflector\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/doctrine/inflector/lib/Doctrine/Common/Inflector',
         ),
         'DebugKit\\Test\\Fixture\\' => 
         array (
@@ -199,6 +248,10 @@ class ComposerStaticInit888b232dd9172665ba06afdcf59050c8
         'Composer\\' => 
         array (
             0 => __DIR__ . '/..' . '/composer/composer/src/Composer',
+        ),
+        'Carbon\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/nesbot/carbon/src/Carbon',
         ),
         'Cake\\Test\\' => 
         array (
@@ -228,6 +281,10 @@ class ComposerStaticInit888b232dd9172665ba06afdcf59050c8
         array (
             0 => __DIR__ . '/..' . '/aura/intl/src',
         ),
+        'App\\Vendor\\' => 
+        array (
+            0 => __DIR__ . '/../..' . '/vender',
+        ),
         'App\\Test\\' => 
         array (
             0 => __DIR__ . '/../..' . '/tests',
@@ -239,12 +296,26 @@ class ComposerStaticInit888b232dd9172665ba06afdcf59050c8
     );
 
     public static $prefixesPsr0 = array (
+        's' => 
+        array (
+            'stringEncode' => 
+            array (
+                0 => __DIR__ . '/..' . '/paquettg/string-encode/src',
+            ),
+        ),
         'j' => 
         array (
             'josegonzalez\\Dotenv' => 
             array (
                 0 => __DIR__ . '/..' . '/josegonzalez/dotenv/src',
                 1 => __DIR__ . '/..' . '/josegonzalez/dotenv/tests',
+            ),
+        ),
+        'P' => 
+        array (
+            'PHPHtmlParser' => 
+            array (
+                0 => __DIR__ . '/..' . '/paquettg/php-html-parser/src',
             ),
         ),
         'J' => 
@@ -256,6 +327,13 @@ class ComposerStaticInit888b232dd9172665ba06afdcf59050c8
             'JakubOnderka\\PhpConsoleColor' => 
             array (
                 0 => __DIR__ . '/..' . '/jakub-onderka/php-console-color/src',
+            ),
+        ),
+        'G' => 
+        array (
+            'Gufy' => 
+            array (
+                0 => __DIR__ . '/..' . '/gufy/pdftohtml-php/src',
             ),
         ),
         'D' => 

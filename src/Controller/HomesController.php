@@ -15,7 +15,7 @@ class HomesController extends AppController {
         parent::initialize();
         $this->loadComponent('Paginator');
         $this->loadComponent('Flash'); // Include the FlashComponent
-        $this->Auth->allow(['index', 'howItWorks']);
+        $this->Auth->allow(['index', 'howItWorks','unsubscribeAlert']);
     }
 
     /*
@@ -26,7 +26,7 @@ class HomesController extends AppController {
      */
 
     public function index() {
-        $this->viewBuilder()->setLayout('frontend');
+        $this->viewBuilder()->setLayout('home');
         $this->loadModel('HomePages');
         $this->loadModel('HomePages');
         $this->loadModel('SubscriptionPlans');
@@ -50,7 +50,35 @@ class HomesController extends AppController {
 
     public function howItWorks() {
         $this->viewBuilder()->setLayout('login');
-        $pageTitle = 'Login';
+        $this->loadModel('HowItWorks');
+        $howItWorks = $this->HowItWorks->find()->Where(['HowItWorks.is_active' => 1, 'HowItWorks.is_deleted' => 0])->all();
+        $this->set(compact('howItWorks'));
+    }
+
+    public function unsubscribeAlert($userId = null, $alertId = null) {
+        $this->viewBuilder()->setLayout('login');
+        if (!empty($userId) && !empty($alertId)) {
+            $this->loadModel('AlertNotifications');
+            $flag = $this->AlertNotifications->find()->where(['user_id' => $userId, 'alert_id' => $alertId])->count();
+            if ($flag > 0) {
+                $userId = $this->Encryption->decode($userId);
+                $alertId = $this->Encryption->decode($alertId);
+                $tablename = TableRegistry::get("AlertNotifications");
+                $query = $tablename->query();
+                $result = $query->update()
+                        ->set(['is_unsubscribed' => '1'])
+                        ->where(['user_id' => $userId, 'alert_id' => $alertId])
+                        ->execute();
+                if ($result) {
+                    $msg="";
+                } else {
+                    $msg="";
+                }
+                $this->set(compact('msg'));
+            }
+        } else {
+            $this->redirect(array('controller' => 'Homes', 'action' => 'index'));
+        }
     }
 
 }

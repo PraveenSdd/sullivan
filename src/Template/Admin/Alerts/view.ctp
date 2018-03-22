@@ -4,96 +4,118 @@
     <div class="col-md-12">
         <div class="box box-primary">
             <div class="box-header with-border padding-top-5">
+                <div class="col-md-12">
+                    <div class="row">
+                        <div class="col-sm-12 bg-primary clearfix text-center">
+                            <?php echo $this->Form->hidden('Alert.name', array('data-id'=>$alerts->id,'value'=>htmlentities($alerts->name),'class'=>'form-control inp-alert-name')) ?>
+                            <h3>  <?php echo ucfirst(htmlentities($alerts->title));?></h3>
+                            <div style="text-align: left">
+                                    <?php echo htmlentities($alerts->notes); ?>
+                            </div>
+                            <div>&nbsp;</div>
+                        </div>
+                    </div>
+                </div>
                 <div class="col-md-8">
                     <div class="box-body">
                         <div class="form-group">
-                            <label for="" class="col-sm-3 control-label">Alert Type</label>
-                            <div class="col-sm-9 padding-top-10">
-                                <?php echo $alert->alert_type->name;?>
+                            <label for="" class="col-sm-3 control-label">Alert Type :</label>
+                            <div class="">
+                                <?php echo htmlentities($alerts->alert_type->name);?>
                             </div>
                         </div>
-                        <?php if(!empty($alert->alert_industries)){ ?>
-                            <div class="form-group">
-                            <label for="" class="col-sm-3 control-label">Industries</label>
-                            <div class="col-sm-9 padding-top-10">
-                            <?php foreach($alert->alert_industries as $alertIndustry){ 
-                                     $industry[] = $alertIndustry->industry->name;
+                        <?php if(!empty($alerts['alert_operations'])){ ?>
+                        <div class="form-group">
+                            <label for="" class="col-sm-3 control-label">Operations :</label>
+                            <div class="">
+                            <?php foreach($alerts['alert_operations'] as $alertsOperation){ 
+                                     $operations[] = htmlentities($alertsOperation['operation']['name']);
                                     }
-                                    echo implode(', &nbsp;', $industry);
+                                 
+                                     if($operations) echo implode(', &nbsp;', $operations);
                                 ?>
-                                </div>
+                            </div>
                         </div>
                        <?php }?>
-                        <?php if(!empty($alert->alert_companies)){ ?>
-                            <div class="form-group">
-                            <label for="" class="col-sm-3 control-label">Companies</label>
-                            <div class="col-sm-9 padding-top-10">
-                            <?php foreach($alert->alert_companies as $alertCompany){
-                                    $comapny[] = $alertCompany->Users->company;
+                        <?php if(!empty($alerts['alert_companies'])){ ?>
+                        <div class="form-group">
+                            <label for="" class="col-sm-3 control-label">Companies :</label>
+                            <div class="">
+                            <?php 
+                                    foreach($alerts['alert_companies'] as $alertsCompany){
+                                    $comapny[] = htmlentities($alertsCompany['user']['company']);
                                     }
-                                    echo implode(', &nbsp;', $comapny);
+                                     if($comapny) echo implode(', &nbsp;', $comapny);
+                                
                             ?>
-                          </div>
+                            </div>
                         </div>
                        <?php }?>
-                        <?php if(!empty($alert->alert_staffs)){ ?>
-                            <div class="form-group">
-                            <label for="" class="col-sm-3 control-label">Staffs</label>
-                            <div class="col-sm-9 padding-top-10">
-                            <?php foreach($alert->alert_staffs as $alertStaff){
-                                    $staffs[] = $alertStaff->user->first_name.' '.$alertStaff->user->last_name;
+                        <?php if($alerts['alert_staffs']){ ?>
+                        <div class="form-group">
+                            <label for="" class="col-sm-3 control-label">Staffs :</label>
+                            <div class="">
+                            <?php  foreach($alerts['alert_staffs'] as $alertsStaff){
+                                    $staffs[] = htmlentities($alertsStaff['user']['first_name']).' '.htmlentities($alertsStaff['user']['last_name']);
                                     }
-                                    echo implode(', &nbsp;', $staffs);
+                                      if($staffs) echo implode(', &nbsp;', $staffs);
                             ?>
-                          </div>
+                            </div>
                         </div>
                        <?php }?>
                         <div class="form-group">
-                            <label for="" class="col-sm-3 control-label">Title</label>
-                            <div class="col-sm-9 padding-top-10">
-                  <?php echo @$alert->title;?>
+                            <label for="" class="col-sm-3 control-label">Date :</label>
+                            <div class="">
+                                 <?php echo $alerts->date; ?>
                             </div>
                         </div>
                         <div class="form-group">
-                            <label for="" class="col-sm-3 control-label">Notes</label>
-                            <div class="col-sm-9 padding-top-10">
-                  <?php echo @$alert->notes;?>
+                            <label for="" class="col-sm-3 control-label">Time :</label>
+                            <div class="">
+                        <?php  echo $alerts->time; ?>
                             </div>
                         </div>
                         <div class="form-group">
-                            <label for="" class="col-sm-3 control-label">Date/Time</label>
-                            <div class="col-sm-9 padding-top-10">
-                                 <?php echo $this->Custom->DateTime(@$alert->date);?>
+                            <label for="" class="col-sm-3 control-label">End Date :</label>
+                            <div class="">
+                                 <?php echo $alerts->alert_end_date; ?>
                             </div>
                         </div>
                         <div class="form-group">
-                            <label for="" class="col-sm-3 control-label">Time</label>
-                            <div class="col-sm-9 padding-top-10">
-                        <?php echo $alert->time; ?>
+                            <label for="" class="col-sm-3 control-label">Repetition :</label>
+                            <div class="">
+                                <?php if($alerts->is_repeated) { 
+                                    echo 'Yes - '.$alerts->interval_value.'/'.$alerts->interval_type;
+                                } else {
+                                    echo 'No';
+                                }
+                                ?>
                             </div>
                         </div>
                         <div class="form-group">
-                            <label for="" class="col-sm-3 control-label">Repetition</label>
-                            <div class="col-sm-9 padding-top-10">
-                                <?php if($alert->is_repeated == 1){ echo 'Yes';}else{ echo 'No';} ?>&nbsp;&nbsp;
-                                <?php if($alert->is_repeated == 1){ echo   $alert->interval_alert.'&nbsp;&nbsp;-&nbsp;'. $alert->interval_type ?>
-                                <?php } ?>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label for="" class="col-sm-3 control-label">Created</label>
-                            <div class="col-sm-9 padding-top-10">
-                 <?php echo $this->Custom->DateTime(@$alert->created);?>
+                            <label for="" class="col-sm-3 control-label">Last Modified :</label>
+                            <div class="">
+                 <?php echo $this->Custom->DateTime($alerts->modified);?>
                             </div>
                         </div>
 
                     </div>
 
                     <div class="box-footer button-form-sub">
-                        <?php echo $this->Html->link('Cancel',['controller'=>'alerts','action'=>'index'],array('class'=>'btn btn-warning','escape' => false)); ?> &nbsp;&nbsp;
+                        <?php if(!$alertNotificationId) {
+                            if($alerts->is_admin == 1){
+                                     if( $LoggedRoleId==1 || ($LoggedRoleId==4 && $LoggedPermissionId==2) || ($LoggedRoleId==4 &&  $LoggedCompanyId != $alerts->added_by)){
+                            echo $this->Html->link('Edit',['controller'=>'alerts','action'=>'edit',$alertId],array('class'=>'btn btn-primary','escape' => false));
+                                     }
+                            }
+                            echo '&nbsp;&nbsp;';
+                            echo $this->Html->link('Cancel',['controller'=>'alerts','action'=>'index'],array('class'=>'btn btn-warning','escape' => false));
+                        } else {
+                            echo $this->Html->link('Back',['controller'=>'alerts','action'=>'notification'],array('class'=>'btn btn-warning','escape' => false));
+                        } ?>
                     </div>
                 </div>
-        
+
             </div>
         </div>
     </div>

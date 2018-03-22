@@ -6,6 +6,53 @@ jQuery(document).on('ready', function () {
             $('#frmPayment').submit();
         }
     });
+    
+    $(document).on('click', '.panel-pricing', function () {
+        selectSubscriptionPlan($(this));
+    });
+    
+    selectSubscriptionPlan('.panel-pricing-3');
+    function selectSubscriptionPlan(element){
+        var locationCount = $('#frmPayment').data('location');
+        var planId = $(element).data('plan-id');
+        var planPrice = $(element).data('plan-price');
+                
+        var chargableAmount = 500;
+        if(locationCount <=3 ){
+            chargableAmount = planPrice;
+            $('.panel-pricing').removeClass('select');
+            $(element).addClass('select');
+            $('.panel-pricing .btn-subscription-plan').html('Available');
+            $('.panel-pricing.select .btn-subscription-plan').html('Selected');
+       } else if(locationCount <=5 && locationCount >3){
+           $('.panel-pricing-1 .btn-subscription-plan').html('Not Available');
+           if(planId != 1){
+                chargableAmount = planPrice;
+                $('.panel-pricing').removeClass('select');
+                $(element).addClass('select');
+                $('.panel-pricing-2 .btn-subscription-plan').html('Available');
+                $('.panel-pricing-3 .btn-subscription-plan').html('Available');
+                $('.panel-pricing.select .btn-subscription-plan').html('Selected');
+           } else {
+               chargableAmount = 750; 
+               planId = 2;
+               $('.panel-pricing').removeClass('select');
+               $('.panel-pricing-2').addClass('select');
+               $('.panel-pricing-3 .btn-subscription-plan').html('Available');
+               $('.panel-pricing.select .btn-subscription-plan').html('Selected');
+           }            
+        } else if(locationCount > 5){
+            chargableAmount = 1000;   
+            planId = 3;
+            $('.panel-pricing').removeClass('select');
+            $('.panel-pricing-3').addClass('select');
+            $('.panel-pricing .btn-subscription-plan').html('Not Available');
+            $('.panel-pricing.select .btn-subscription-plan').html('Selected');
+        }
+        $('.subscription-plan-id').val(planId);        
+        $('.chargable-amount').html(parseFloat(chargableAmount).toFixed(2));
+    }
+    
 
 //***************** validation of payment field from forntend *****************************\\
 

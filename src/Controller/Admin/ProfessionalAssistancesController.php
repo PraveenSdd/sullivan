@@ -38,10 +38,10 @@ class ProfessionalAssistancesController extends AppController {
      */
 
     public function index() {
-        $pageTitle = 'Professional Assistances';
-        $pageHedding = 'Professional Assistances';
+        $pageTitle = 'Helps';
+        $pageHedding = 'Helps';
         $breadcrumb = array(
-            array('label' => 'Professional Assistances'),
+            array('label' => 'Helps'),
         );
         $this->set(compact('breadcrumb', 'pageTitle', 'pageHedding'));
         $conditions = ['ProfessionalAssistances.is_deleted' => 0];
@@ -60,7 +60,6 @@ class ProfessionalAssistancesController extends AppController {
             'limit' => 10,
         ];
         $professionalAssistances = $this->paginate($this->ProfessionalAssistances);
-
         $this->set(compact('professionalAssistances'));
     }
 
@@ -72,10 +71,10 @@ class ProfessionalAssistancesController extends AppController {
      */
 
     public function view($id = null) {
-        $pageTitle = 'Professional Assistances | View';
-        $pageHedding = 'View';
+        $pageTitle = 'View Help';
+        $pageHedding = 'View Help';
         $breadcrumb = array(
-            array('label' => 'Professional Assistances', 'link' => 'ProfessionalAssistances/'),
+            array('label' => 'Helps', 'link' => 'ProfessionalAssistances/'),
             array('label' => 'View'),
         );
         $this->set(compact('breadcrumb', 'pageTitle', 'pageHedding'));

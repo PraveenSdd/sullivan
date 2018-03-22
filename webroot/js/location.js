@@ -4,12 +4,32 @@
 */
   
 $(function(){
+    $(".inp-phone").mask("999-999-9999");
+    $('.sel-location-operation').multiselect({
+        numberDisplayed: 5
+    });
+    
+    toggleLocationOperation();
+    $(document).on('click', '.chk-company-operation', function () {
+        toggleLocationOperation();
+    });
+    
+    function toggleLocationOperation(){
+        if($('.chk-company-operation').length >0) {
+            if($('.chk-company-operation').prop('checked') == true){
+                $('.col-sel-company-operation').removeClass('hide');
+            } else {
+                $('.col-sel-company-operation').addClass('hide');
+            }
+        }
+    }
+    
     $("#user_locations").validate({
      debug: false,
       errorClass: "authError",
       onkeyup: false,
       rules: {
-        "industry_id[]": "required",
+        "operation_id[]": "required",
      //  state_id: "required",
         "email":{
           required: true,
@@ -35,15 +55,14 @@ $(function(){
             },
         title: {
                 required: true,
-                maxlength: 30,
-                 letterspace: true,
+                maxlength: 30
             },
         address1: "required",
         
         
       },
       messages: {
-      country_id: "Please select industry",
+      'operation_id[]': "Please select operations",
        email: {required:"Please enter  email address",
             remote: "Email address is already exists"},
          

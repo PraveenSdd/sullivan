@@ -15,11 +15,10 @@ class UsersController extends AppController {
         parent::initialize();
         if (!$this->request->getParam('admin')) {
             if ($this->Auth->user()) {
-              
-            if ($this->Auth->user('role_id') != 1 && $this->Auth->user('role_id') != 4) {
+                if ($this->Auth->user('role_id') != 1 && $this->Auth->user('role_id') != 4) {
                     $this->redirect('/');
                 }
-           }
+            }
         }
         /* these are code for get admin and employee id */
         if ($this->Auth->user('user_id') != 0) {
@@ -29,8 +28,8 @@ class UsersController extends AppController {
             $this->emaployeeId = $this->Auth->user('id');
             $this->userId = $this->Auth->user('id');
         }
-         $this->loadComponent('Upload');
-        $this->Auth->allow(['login', 'forgotPassword', 'resetPassword','emailVerification']);
+        $this->loadComponent('Upload');
+        $this->Auth->allow(['login', 'forgotPassword', 'resetPassword', 'emailVerification']);
     }
 
     /* Function: login()
@@ -38,14 +37,13 @@ class UsersController extends AppController {
      * By @Ahsan Ahamad
      * Date : 3rd Nov. 2017
      */
-    
-    
+
     public function login() {
         $pageTitle = 'Login';
         $this->set(compact('pageTitle'));
         $this->viewBuilder()->setLayout('login');
         if ($this->request->is('post')) {
-            $emailExist = $this->Users->find()->where(['email' => $this->request->data['email'], 'role_id in' => array(1,4)])->first();
+            $emailExist = $this->Users->find()->where(['email' => $this->request->data['email'], 'role_id in' => array(1, 4)])->first();
             if (empty($emailExist)) {
                 $this->Flash->error(__('Combination of username/password is not correct, try again.'));
                 return $this->redirect(['controller' => 'Users', 'action' => 'login', 'prefix' => 'admin']);
@@ -101,21 +99,32 @@ class UsersController extends AppController {
      * By @Ahsan Ahamad
      * Date : 3rd Nov. 2017
      */
-    
-    
+
     public function dashboard() {
         $pageTitle = 'Dashboard';
         $pageHedding = 'Dashboard';
         $this->set(compact('pageTitle', 'pageHedding'));
-        $this->loadModel('Forms');
+        $this->loadModel('Permits');
         $this->loadModel('Operations');
-        $this->loadModel('Categories');
+        $this->loadModel('Agencies');
         $company = $this->Users->find()->where(['Users.role_id' => 2, 'Users.is_active' => 1, 'Users.is_deleted' => 0])->count('id');
-        $permit = $this->Forms->find()->where(['Forms.is_active' => 1, 'Forms.is_deleted' => 0])->count('id');
-        $category = $this->Categories->find()->where([ 'Categories.is_active' => 1, 'Categories.is_deleted' => 0])->count('id');
-        $operations = $this->Operations->find()->where([ 'Operations.is_active' => 1, 'Operations.is_deleted' => 0])->count('id');
+        $permits = $this->Permits->find()->where(['Permits.is_active' => 1, 'Permits.is_deleted' => 0])->count('id');
+        $agencies = $this->Agencies->find()->where(['Agencies.is_active' => 1, 'Agencies.is_deleted' => 0])->count('id');
+        $operations = $this->Operations->find()->where(['Operations.is_active' => 1, 'Operations.is_deleted' => 0])->count('id');
 
-        $this->set(compact('company', 'permit', 'category', 'operations'));
+        $acticitylogs = TableRegistry::get('ActivityLogs');
+        $conditions = [];
+        $this->paginate = [
+            'conditions' => $conditions,
+            'order' => ['ActivityLogs.id' => 'desc'],
+            'limit' => 5,
+        ];
+        $logs = $this->paginate($acticitylogs);
+        $this->set(compact('logs'));
+
+
+
+        $this->set(compact('company', 'permits', 'agencies', 'operations'));
     }
 
     /* Function: forgotPassword()
@@ -124,8 +133,6 @@ class UsersController extends AppController {
      * Date : 9th Nov. 2017
      */
 
-    
-        
     public function forgotPassword() {
         $pageTitle = 'Login';
         $this->set(compact('pageTitle'));
@@ -228,16 +235,29 @@ class UsersController extends AppController {
         $pageTitle = 'Change Password';
         $pageHedding = 'Change Password';
         $breadcrumb = array(
+            array('label' => 'Setting', 'link' => 'users/changePassword'),
             array('label' => 'Change Password'),
         );
         $this->set(compact('breadcrumb', 'pageTitle', 'pageHedding'));
         if ($this->request->is(['post', 'put'])) {
             $user = $this->Users->get($this->userId);
             $user = $this->Users->patchEntity($user, $this->request->data, ['validate' => 'ChangePassword']);
+
             if ($user->errors()) {
 
-                if ($this->Users->save($user)) {
-                    $massage = ['message' => 'Password hsa been updated successfully, try again', 'title' => 'Success'];
+                if ($success = $this->Users->save($user)) {
+                    /* === Added by vipin for  add log=== */
+                    $saveActivityLog = [];
+                    $saveActivityLog['table_id'] = $success->id;
+                    $saveActivityLog['table_name'] = 'users';
+                    $saveActivityLog['module_name'] = 'Change Password';
+                    $saveActivityLog['url'] = $this->referer();
+                    $saveActivityLog['message'] = 'Password updated by' . $this->loggedusername;
+                    $saveActivityLog['activity'] = 'Update';
+                    $this->Custom->saveActivityLog($saveActivityLog);
+                    /* === Added by vipin for  add log=== */
+
+                    $massage = ['message' => 'Password has been updated successfully, try again', 'title' => 'Success'];
                     $this->set('massage', $massage);
                     return $this->redirect(['controller' => 'Users', 'action' => 'logout']);
                 } else {
@@ -247,7 +267,7 @@ class UsersController extends AppController {
                     return $this->redirect($this->referer());
                 }
             } else {
-                $this->Flash->error(__($this->Custom->multipleFlash($UserLocation->errors())));
+                $this->Flash->error(__($this->Custom->multipleFlash($user->errors())));
             }
         }
     }
@@ -316,8 +336,6 @@ class UsersController extends AppController {
      * By @Ahsan Ahamad
      * Date : 17sth Nov. 2017
      */
-    
-    
 
     public function editCompany($id = null) {
         $pageTitle = 'Companies | Edit';
@@ -365,6 +383,7 @@ class UsersController extends AppController {
         $pageTitle = 'Profile';
         $pageHedding = 'Profile';
         $breadcrumb = array(
+            array('label' => 'Setting', 'link' => 'users/profile'),
             array('label' => 'Profile'),
         );
         $this->set(compact('breadcrumb', 'pageTitle', 'pageHedding'));
@@ -380,10 +399,11 @@ class UsersController extends AppController {
      */
 
     public function profileEdit() {
-        $pageTitle = 'Profile | Edit';
-        $pageHedding = 'Profile | Edit';
+        $pageTitle = 'Edit Profile';
+        $pageHedding = 'Edit Profile';
         $breadcrumb = array(
-            array('label' => 'Profile | Edit'),
+            array('label' => 'Setting', 'link' => 'users/profile'),
+            array('label' => 'Edit'),
         );
         $this->set(compact('breadcrumb', 'pageTitle', 'pageHedding'));
         if ($this->request->is(['post', 'put'])) {
@@ -393,6 +413,17 @@ class UsersController extends AppController {
                 if (!$users->errors()) {
                     $success = $this->Users->save($users);
                     if ($success) {
+                        /* === Added by vipin for  add log=== */
+                        $message = 'Profile updated by ' . $this->loggedusername;
+                        $saveActivityLog = [];
+                        $saveActivityLog['table_id'] = $success->id;
+                        $saveActivityLog['table_name'] = 'users';
+                        $saveActivityLog['module_name'] = 'Profile';
+                        $saveActivityLog['url'] = $this->referer();
+                        $saveActivityLog['message'] = $message;
+                        $saveActivityLog['activity'] = 'Edit';
+                        $this->Custom->saveActivityLog($saveActivityLog);
+                        /* === Added by vipin for  add log=== */
                         $this->Flash->success(__('Profile has been saved successfully.'));
                         return $this->redirect(['controller' => 'users', 'action' => 'profile']);
                     } else {
@@ -411,35 +442,36 @@ class UsersController extends AppController {
         $profile = $this->Users->find()->where(['id' => $this->userId])->first();
         $this->set(compact('profile'));
     }
-    
+
     /*  Function: upladProfileImg()
      * Description: Function use for edit profile photo   
      * By @Ahsan Ahamad
      * Date : 15 Jan 2018
      */
-    public function upladProfileImg(){
+
+    public function upladProfileImg() {
         if ($this->request->is('post')) {
             $pathDocument = 'img/profile';
             $profileImg = $this->Upload->uploadImage($this->request->data['photo'], $pathDocument);
             $profile['profile_image'] = $profileImg;
-           
+
             $users = $this->Users->get($this->Auth->user('id'));
-           
+
             $users = $this->Users->patchEntity($users, $profile);
-                if (!$users->errors()) {
-            if($this->Users->save($users)){
-             $this->Flash->success(__('Profile photo has been changed successfully.'));
-                        return $this->redirect(['controller' => 'users', 'action' => 'profile']);
-            }else{
-                $this->Flash->error(__('profile photo could not be change'));
-                return $this->redirect(['controller' => 'users', 'action' => 'profile']);
-            }
-                }  else {
-                    $this->Flash->error(__($this->Custom->multipleFlash($users->errors())));
+            if (!$users->errors()) {
+                if ($this->Users->save($users)) {
+                    $this->Flash->success(__('Profile photo has been changed successfully.'));
+                    return $this->redirect(['controller' => 'users', 'action' => 'profile']);
+                } else {
+                    $this->Flash->error(__('profile photo could not be change'));
+                    return $this->redirect(['controller' => 'users', 'action' => 'profile']);
                 }
+            } else {
+                $this->Flash->error(__($this->Custom->multipleFlash($users->errors())));
+            }
         }
     }
-    
+
     /* Function: resetPassword()
      * Description: function use for create new password 
      * @param type $emailVerification    
@@ -448,7 +480,7 @@ class UsersController extends AppController {
      */
 
     public function emailVerification($emailVerification = null) {
-            $this->autoRender = false;
+        $this->autoRender = false;
         $verificationData = $this->Users->getIdByEmailVerification($emailVerification);
         $responseFlag = false;
         if ($verificationData) {
@@ -460,10 +492,8 @@ class UsersController extends AppController {
                     ->execute();
             if ($data) {
                 $this->Flash->success(__('Email verification has been successfully.'));
-                        
-            }else{
+            } else {
                 $this->Flash->error(__('Email could not be verified'));
-
             }
         }
         return $this->redirect(['controller' => 'users', 'action' => 'login']);

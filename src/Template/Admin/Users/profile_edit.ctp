@@ -16,33 +16,33 @@
                         <?php if($profile->user_id != 0){ 
                               $comanyName = $this->Custom->gitCompanyName($profile->user_id); ?>
                         <div class="form-group">
-                            <label for="" class="col-sm-3 control-label">Comapny Name</label>
+                            <label for="" class="col-sm-3 control-label">Company Name :</label>
                             <div class="col-sm-9 padding_top_20">
                                 <?php echo $comanyName->company;?>
                             </div>
                         </div>
                         <div class="form-group">
-                            <label for="" class="col-sm-3 control-label">First Name</label>
+                            <label for="" class="col-sm-3 control-label">First Name :</label>;
                             <div class="col-sm-9 padding_top_20">
                     <?php echo $comanyName->first_name;?>
                             </div>
                         </div>
                         <div class="form-group">
-                            <label for="" class="col-sm-3 control-label">Last Name</label>
+                            <label for="" class="col-sm-3 control-label">Last Name :</label>
                             <div class="col-sm-9 padding_top_20">
                     <?php if($comanyName->last_name){ echo $profile->last_name; }?>
                             </div>
 
                         </div>
                         <div class="form-group">
-                            <label for="" class="col-sm-3 control-label">Email</label>
+                            <label for="" class="col-sm-3 control-label">Email :</label>
                             <div class="col-sm-9 padding_top_20">
                     <?php  echo $comanyName->email; ?>
                             </div>
 
                         </div>
                         <div class="form-group">
-                            <label for="" class="col-sm-3 control-label">Phone</label>
+                            <label for="" class="col-sm-3 control-label">Phone :</label>
                             <div class="col-sm-9 padding_top_20">
                     <?php  echo $comanyName->phone; ?>
                             </div>
@@ -50,8 +50,8 @@
                         </div>
                         <?php }else{?>
                         <div class="form-group">
-                            <label for="" class="col-sm-3 control-label">Comapny Name</label>
-                            <div class="col-sm-9 padding_top_20">
+                            <label for="" class="col-sm-3 control-label">Company Name :</label>
+                            <div class="col-sm-9 padding_top_20 profile-label">
                             <?php echo $profile->company;?>
 
                             </div>
@@ -59,11 +59,11 @@
                         <?php }?>
 
                         <div class="form-group">
-                            <label for="" class="col-sm-3 control-label">First Name</label>
+                            <label for="" class="col-sm-3 control-label">First Name :</label>
                             <div class="col-sm-9 padding_top_20">
                                 <?php echo $this->Form->input(
                                 'first_name', array(
-                                'placeholder'=>'Name',
+                                'placeholder'=>'First Name',
                                 'class'=>'form-control required',
                                 'label' => false,
                                 'value'=>$profile->first_name,
@@ -73,11 +73,11 @@
                             </div>
                         </div>
                         <div class="form-group">
-                            <label for="" class="col-sm-3 control-label">Last Name</label>
+                            <label for="" class="col-sm-3 control-label">Last Name :</label>
                             <div class="col-sm-9 padding_top_20">
                                 <?php echo $this->Form->input(
                                     'last_name', array(
-                                    'placeholder'=>'Name',
+                                    'placeholder'=>'Last Name',
                                     'class'=>'form-control required',
                                     'label' => false,
                                     'value'=>$profile->last_name,
@@ -88,11 +88,11 @@
 
                         </div>
                         <div class="form-group">
-                            <label for="" class="col-sm-3 control-label">Email</label>
+                            <label for="" class="col-sm-3 control-label">Email :</label>
                             <div class="col-sm-9 padding_top_20">
                                  <?php echo $this->Form->email(
                                     'email', array(
-                                    'placeholder'=>'Name',
+                                    'placeholder'=>'Email',
                                     'class'=>'form-control',
                                     'label' => false,
                                     'value'=>$profile->email,
@@ -103,17 +103,37 @@
 
                         </div>
                         <div class="form-group">
-                            <label for="" class="col-sm-3 control-label">Phone</label>
-                            <div class="col-sm-9 padding_top_20">
+                            <label for="" class="col-sm-3 control-label">Phone :</label>
+                            <div class="col-sm-4 padding_top_20">
                                 <?php echo $this->Form->input(
                                     'phone', array(
-                                    'placeholder'=>'Name',
+                                    'placeholder'=>'Phone',
                                     'class'=>'form-control inp-phone',
                                     'label' => false,
                                     'value'=>$profile->phone,
                                    ));  
                                 ?>
                             </div>
+                            
+                            <div class="col-sm-2 padding_top_20 phone-ext">
+                                <label for="" class="col-sm-3 control-label">Extension</label>
+                                
+                            </div>
+                            <div class="col-sm-3 padding_top_20 phone-ext">
+                               <?php echo $this->Form->input('phone_extension', array(
+                                                'class'=>'form-control phone-extension-address inp-add_address-country_code',
+                                                'id'=>'phone_extension',
+                                                 'placeholder'=>'Extension ',
+                                                 'maxlength'=>4,
+                                                'div'=>false,
+                                                'legend' => false,
+                                                'label' => false,
+                                                'value'=>$profile->phone_extension,
+                                                 ));  
+                                              ?>
+                                
+                            </div>
+                            
                         </div>
                         <div class="box-footer button-form-sub">
                         <?php echo $this->Html->link('Cancel',['controller'=>'users','action'=>'profile'],array('class'=>'btn btn-warning','escape' => false)); ?> &nbsp;&nbsp;

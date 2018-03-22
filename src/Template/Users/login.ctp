@@ -42,11 +42,6 @@
                                 </div>
                             </div>
                         </div>
-
-                        <div class="add-address">
-<?php echo $this->Html->link('Forgot Password',['controller'=>'users','action'=>'forgotPassword'],array('escape' => false)); ?>
-                        </div>
-
                     </div>
                         <?php echo $this->Form->button('Login', array('type'=>'submit','class'=>'pull-right m-t-2 big-nxt-btn')); ?>
                 </div>

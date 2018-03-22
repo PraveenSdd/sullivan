@@ -11,9 +11,18 @@ class EmailTemplatesTable extends Table {
         parent::initialize($config);
         $this->addBehavior('Timestamp');
         $this->setTable('email_templates');
+        $this->belongsTo(
+                'Users', [
+            'className' => 'Users',
+            'foreignKey' => 'modified_by'
+                ]
+        );
     }
 
-    
+    public function getEmailTemplateById($id = null) {
+        return $this->find()->where(['id' => $id])->first();
+    }
+
 }
 
 ?>

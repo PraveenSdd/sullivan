@@ -7,7 +7,9 @@
             <div class="box-header with-border padding-top-5">
             <?php  echo $this->Form->create('Faqs', array('url' => array('controller' => 'Faqs', 'action' => 'add'),'id'=>'add_category',' method'=>'post','class'=>'form-horizontal')); ?>
                 <div class=" pull-right ">
-                             <?php echo $this->Html->link('Edit',['controller'=>'staffs','action'=>'edot'],array('class'=>'btn btn-primary','escape' => false)); ?>
+                             <?php 
+                             if($LoggedPermissionId ==1){ 
+                             echo $this->Html->link('Edit',['controller'=>'staffs','action'=>'edit', $this->Encryption->encode($staff['id'])],array('class'=>'btn btn-primary','escape' => false)); }?>
                     </span>
                 </div>
                 <div class="col-md-12">
@@ -15,13 +17,13 @@
                         <div class="col-md-6">
                             <label for="" class="col-sm-3 ">First Name : </label>
                             <div class="col-sm-9 padding_top_20">
-                                <?php echo $staff['first_name'];?>
+                                <?php echo htmlentities($staff['first_name']);?>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <label for="" class="col-sm-3 ">Last Name : </label>
                             <div class="col-sm-9 padding_top_20">
-                          <?php echo $staff['last_name'];?>
+                          <?php echo htmlentities($staff['last_name']);?>
                             </div>
                         </div>
                     </div>
@@ -29,7 +31,7 @@
                         <div class="col-md-6">
                             <label for="" class="col-sm-3 ">Email : </label>
                             <div class="col-sm-9 padding_top_20">
-                                <?php echo $staff['email'];?>
+                                <?php echo htmlentities($staff['email']);?>
                             </div>
                         </div>
                         <div class="col-md-6">
@@ -49,13 +51,13 @@
                         <div class="col-md-6">
                             <label for="" class="col-sm-3 ">Position : </label>
                             <div class="col-sm-9 padding_top_20">
-                                <?php echo $staff['position'];?>
+                                <?php echo htmlentities($staff['position']);?>
                             </div>
                         </div>
                         <div class="col-md-6">
-                            <label for="" class="col-sm-3 ">Level : </label>
+                            <label for="" class="col-sm-3 ">Permission Level : </label>
                             <div class="col-sm-9 padding_top_20">
-                            <?php echo $this->Custom->getPermissionName($staff['permission_acces']['permission_id']);?>
+                            <?php echo $this->Custom->getPermissionName($staff['permission_id']);?>
 
                            </div>
                         </div>
@@ -64,13 +66,13 @@
                         <div class="col-md-6">
                             <label for="" class="col-sm-3 ">Address 1 : </label>
                             <div class="col-sm-9 padding_top_20">
-                                <?php echo $staff['address']['address1'];?>
+                                <?php echo htmlentities($staff['address']['address1']);?>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <label for="" class="col-sm-3 ">Address 2 : </label>
                             <div class="col-sm-9 padding_top_20">
-                          <?php echo $staff['address']['address2'];?>
+                          <?php echo htmlentities($staff['address']['address2']);?>
                             </div>
                         </div>
                     </div>
@@ -78,13 +80,13 @@
                         <div class="col-md-6">
                             <label for="" class="col-sm-3 ">City : </label>
                             <div class="col-sm-9 padding_top_20">
-                                <?php echo $staff['address']['city'];?>
+                                <?php echo htmlentities($staff['address']['city']);?>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <label for="" class="col-sm-3 ">State : </label>
                             <div class="col-sm-9 padding_top_20">
-                          <?php echo $this->Custom->getStateName($staff['address']['state_id']);?>
+                          <?php if($staff['address']['state_id']) echo $this->Custom->getStateName($staff['address']['state_id']);?>
                             </div>
                         </div>
                     </div>
@@ -92,21 +94,10 @@
                         <div class="col-md-6">
                             <label for="" class="col-sm-3 ">Zip Code : </label>
                             <div class="col-sm-9 padding_top_20">
-                                <?php echo $staff['address']['zipcode'];?>
+                                <?php echo htmlentities($staff['address']['zipcode']);?>
                             </div>
                         </div>
-                        <div class="col-md-6">
-                            <label for="" class="col-sm-3 ">Phone : </label>
-                            <div class="col-sm-9 padding_top_20">
-                          <div class="phone-block padding-top-5" >
-                                     <?php echo $staff['address']['phone'];?>
-                                </div>
-                                <div class="phone-extension-block padding-top-5">
-                                    <label> Extension </label>
-                                    <?php echo $staff['address']['phone_extension'];?>
-                                </div>
-                            </div>
-                        </div>
+                        
                     </div>
                 </div>
                 <div class="box-footer button-form-sub">

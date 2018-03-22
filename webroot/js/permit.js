@@ -4,6 +4,43 @@
 */
 
 $(document).ready(function(){
+
+/*---------Start code for update the status of permit by users-----------------------*/
+   $(".change-status").on('change',function(){
+        var status_id = $(this).val(); 
+        var permit_id = $(this).attr('permit_id');
+        var user_location_id = $(this).attr('user_location_id');
+        var operation_id = $(this).attr('operation_id');
+                 $.ajax({
+                    url: "/users/changeUserPermitStatus",
+                        type: "POST",               
+                        data: {'status_id':status_id,'permit_id':permit_id,'user_location_id':user_location_id,'operation_id':operation_id},
+                                      
+                        success: function(responce)         
+                        {
+                        var res = JSON.parse(responce);    
+                        if(res.statusCode == 200){
+                         
+                         $("#success").show();
+                         $("#success").html("Status has been updated sucessfully");
+
+
+                        }else{
+                            $("#success").show();
+                            $("#success").html("Status has been updated sucessfully");
+                       }
+
+                       setTimeout(function(){
+                        $("#success").hide();
+                        $("#error").hide();
+                       },3000);
+                      
+                    }           
+           });
+      
+      });
+/*---------END code for update the status of permit by users-----------------------*/
+
  
 // start   code for set alert value from forntend permit 
 $(".uploadForm").click(function(){
@@ -14,28 +51,24 @@ $(".uploadForm").click(function(){
         
 });
 
- $('.permit').on('click',function(){
-        if($(this).val() == 'on'){
-           $('#attachment').attr('disabled',true);  
+ $(document).on('click','.permit',function(){
+           $('#attachmentDocument').attr('disabled',true);  
            $('#document').attr('disabled',true);  
            $('#alertType').val('permit');
-        }
+       
     });
     
     
- $('.document').on('click',function(){
-        if($(this).val() == 'on'){
-           $('#attachment').attr('disabled',true);  
+ $(document).on('click','.document',function(){
+      
+           $('#attachmentDocument').attr('disabled',true);  
            $('#document').attr('disabled',false);  
             $('#alertType').val('document');
-        }
     });
-    $('.attachment').on('click',function(){
-         if($(this).val() == 'on'){
-           $('#attachment').attr('disabled',false);  
+    $(document).on('click','.attachment',function(){
+           $('#attachmentDocument').attr('disabled',false);  
            $('#document').attr('disabled',true); 
              $('#alertType').val('attachment');
-        }
     });
 // end  code for set alert value from forntend permit   
 // code for set upload form value     
@@ -161,6 +194,45 @@ $("#uploadPermitAttachment").on('submit',function(e) {
    });
    }
 });
+
+ /* change  form status of ther permit form front-end */
+
+    $(document).on('click', '.changeFormStatus', function (event) {
+        var permitId = $(this).data('permitid');
+        var newstatus = $(this).data('newstatus');
+        var userId = $(this).data('userid');
+        var title = $(this).data('title');
+        var oldStatus = $(this).data('oldstatus');
+        var operationId = $(this).data('operationid');
+        var locationId = $(this).data('locationid');
+        var agencyId = $(this).data('agencyid');
+        event.preventDefault();
+        var urllink = $(this).attr('href');
+        ecoConfirm("Are you sure you want to change the '" + title + "' status?", function
+                ecoAlert(findreturn) {
+            if (findreturn == true) {
+                $.ajax({
+                    url: "/Customs/changeFormStatus",
+                    type: "POST",
+                    data: { permit_id: permitId,
+                            newstatus: newstatus,
+                            user_id: userId,
+                            oldStatus: oldStatus,
+                            title: title,
+                            operation_id: operationId,
+                            user_location_id: locationId,
+                            agency_id: agencyId,
+                    },
+                    success: function (data) {
+                      //  window.location.reload();
+                    }
+                });
+            } else {
+                console.log('false');
+            }
+        });
+    });
+
 
 
   

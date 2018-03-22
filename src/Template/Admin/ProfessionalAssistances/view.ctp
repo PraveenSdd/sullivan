@@ -11,31 +11,33 @@
                     <div class="box-body">
                         <div class="form-group">
                             <label for="" class="col-sm-3 control-label">Company Name</label>
-                            <div class="col-sm-9">
-                  <?php echo @$professionalAssistance->comapny_name;?>
+                            <div class="col-sm-9 padding-top-10">
+                  <?php $company = $this->Custom->gitCompanyName($professionalAssistance->company_id);
+                                   echo $company['company'];
+                            ?>
                             </div>
                         </div>
                         <div class="form-group">
                             <label for="" class="col-sm-3 control-label">Name</label>
-                            <div class="col-sm-9">
+                            <div class="col-sm-9 padding-top-10">
                   <?php echo @$professionalAssistance->name;?>
                             </div>
                         </div>
                         <div class="form-group">
                             <label for="" class="col-sm-3 control-label">Email</label>
-                            <div class="col-sm-9">
+                            <div class="col-sm-9 padding-top-10">
                   <?php echo @$professionalAssistance->email;?>
                             </div>
                         </div>
                         <div class="form-group">
                             <label for="" class="col-sm-3 control-label">Phone</label>
-                            <div class="col-sm-9">
+                            <div class="col-sm-9 padding-top-10">
                   <?php echo @$professionalAssistance->phone;?>
                             </div>
                         </div>
                         <div class="form-group">
                             <label for="" class="col-sm-3 control-label">Created</label>
-                            <div class="col-sm-9">
+                            <div class="col-sm-9 padding-top-10">
                  <?php echo $this->Custom->DateTime($professionalAssistance->created);?>
                             </div>
                         </div>

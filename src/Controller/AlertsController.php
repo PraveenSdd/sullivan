@@ -32,34 +32,26 @@ class AlertsController extends AppController {
      */
 
     public function index() {
+
         $pageTitle = 'Alerts';
         $pageHedding = 'Alerts';
         $breadcrumb = array(
             array('label' => 'Alerts'),
         );
         $this->set(compact('breadcrumb', 'pageTitle', 'pageHedding'));
-        $this->loadModel('Alerts');
-        $conditions = ['Alerts.is_deleted' => 0, 'Alerts.user_id' => $this->Auth->user('id')];
-        if (@$this->request->query['title'] != '' && @$this->request->query['status'] != '') {
-            $conditions = ['Alerts.is_deleted' => 0, 'Alerts.question LIKE' => '%' . $this->request->query['title'] . '%', 'Alerts.is_active' => $this->request->query['status']];
-        } else if (@$this->request->query['title'] != '') {
-            $conditions = ['Alerts.is_deleted' => 0, 'Alerts.question LIKE' => '%' . $this->request->query['title'] . '%'];
-        } else if (@$this->request->query['status'] != '') {
-            $conditions = ['Alerts.is_deleted' => 0, 'Alerts.is_active' => $this->request->query['status']];
+        $alertList = $this->_getAlertListForUser();
+        if (!empty($alertList)) {
+            $this->paginate = [
+                'conditions' => ['OR' => ['Alerts.id IN' => $alertList, 'Alerts.user_id' => $this->LoggedCompanyId], 'AND' => ['Alerts.is_active' => 1, 'Alerts.is_deleted' => 0]],
+                'contain' => ['AlertTypes', 'AlertStaffs.Users', 'AlertPermits.Permits', 'Users' => function($q) {
+                        return $q->select(['Users.id', 'Users.first_name', 'Users.last_name']);
+                    }],
+                'order' => ['Alerts.title' => 'asc'],
+                'limit' => 10,
+            ];
+
+            $alerts = $this->paginate($this->Alerts);
         }
-        if ($this->request->query) {
-            $this->request->data = $this->request->query;
-        }
-
-
-        $this->paginate = [
-            'conditions' => $conditions,
-            'contain' => ['AlertTypes', 'AlertStaffs.Users', 'AlertPermits.Permits'],
-            'order' => ['Alerts.title' => 'asc'],
-            'limit' => 10,
-        ];
-        $alerts = $this->paginate($this->Alerts);
-
         $this->set(compact('alerts'));
     }
 
@@ -72,104 +64,41 @@ class AlertsController extends AppController {
 
     public function add() {
         $pageTitle = 'Alerts | Add';
-        $pageHedding = 'Add Alerts';
+        $pageHedding = 'Add Alert';
         $breadcrumb = array(
-            array('label' => 'Alerts', 'link' => 'faqs/'),
+            array('label' => 'Alerts', 'link' => 'alerts/'),
             array('label' => 'Add'));
         $this->set(compact('breadcrumb', 'pageTitle', 'pageHedding'));
-        if ($this->Auth->user('role_id') == 3) {
-            $userId = $this->Auth->user('user_id');
-        } else {
-            $userId = $this->Auth->user('id');
-        }
         if ($this->request->is('post')) {
-
-            $this->loadModel('AlertStaffs');
-            $this->loadModel('Users');
-            $this->loadModel('AlertPermits');
-
-            $this->request->data['title'] = ucfirst($this->request->data['title']);
-            $this->request->data['date'] = date('Y-m-d', strtotime($this->request->data['date']));
-            $this->request->data['user_id'] = $this->userId;
-            if (!empty($this->request->data['interval'])) {
-                $this->request->data['interval_alert'] = (int) $this->request->data['interval'];
-            }
-            $alerts = $this->Alerts->newEntity();
-            $this->Alerts->patchEntity($alerts, $this->request->data, ['validate' => 'Add']);
-            if (!$alerts->errors()) {
-                $success = $this->Alerts->save($alerts);
-
-                if ($success) {
-
-                    /* code for save alert Staff */
-                    if (!empty($this->request->data['staff_id']) && $this->request->data['alert_type_id'] == 3) {
-
-                        foreach ($this->request->data['staff_id'] as $key => $value) {
-                            $staff['user_id'] = $value;
-                            $staff['created'] = date('Y-m-d');
-                            $staff['alert_id'] = $success->id;
-                            $staff['alert_type_id'] = $this->request->data['alert_type_id'];
-                            $staffs = $this->AlertStaffs->newEntity();
-                            $this->AlertStaffs->patchEntity($staffs, $staff);
-                            $successAlert = $this->AlertStaffs->save($staffs);
-                        }
-                        if ($successAlert) {
-                            $staffs = $this->Users->find('list', ['valueField' => 'email']);
-                            $staffs->hydrate(false)->select(['Users.email'])->where(['Users.id in' => $this->request->data['staff_id'], 'Users.is_deleted' => 0, 'Users.is_active' => 1]);
-                            $emails = $staffs->toArray();
-                            /* code for send email to multiple users and companies */
-                            $template = 'new_alert';
-                            $subject = "New Alerts";
-                            $this->Custom->sendMultipleEmail($emails, $template, $subject);
-                        }
-                    }
-                    /* code for save alert industry */
-                    if (!empty($this->request->data['form_id'])) {
-                        $value = $this->request->data['form_id'];
-                        $permit['form_id'] = $value;
-                        $permit['created'] = date('Y-m-d');
-                        $permit['alert_id'] = $success->id;
-                        $permit['alert_type_id'] = $this->request->data['alert_type_id'];
-                        $permits = $this->AlertPermits->newEntity();
-                        $this->AlertPermits->patchEntity($permits, $permit);
-                        $successAlert = $this->AlertPermits->save($permits);
-                    }
-                    $this->Flash->success(__('Alerts has been saved successfully.'));
-                    return $this->redirect(['controller' => 'alerts', 'action' => 'index']);
-                } else {
-                    $this->Flash->error(__('Alerts could not be saved'));
-                }
+            $this->request->data['Alert']['id'] = null;
+            $response = $this->Alerts->saveCompanyData($this->request->data['Alert']);
+            if (!$response['flag']) {
+                $responce['msg'] = $this->Custom->multipleFlash($alerts->errors());
             } else {
-                $this->Flash->error(__($this->Custom->multipleFlash($alerts->errors())));
+                $this->_updatedBy('Alerts', $response['id']);
+                /* === Added by vipin for  add log=== */
+                $message = 'Alert added by ' . $this->loggedusername;
+                $saveActivityLog = [];
+                $saveActivityLog['table_id'] = $response['id'];
+                $saveActivityLog['table_name'] = 'alerts';
+                $saveActivityLog['module_name'] = 'Alert Front';
+                $saveActivityLog['url'] = $this->referer();
+                $saveActivityLog['message'] = $message;
+                $saveActivityLog['activity'] = 'Add';
+                $this->Custom->saveActivityLog($saveActivityLog);
+                /* === Added by vipin for  add log=== */
+                $this->Flash->success(__('Alerts has been added successfully.'));
+                return $this->redirect(['controller' => 'alerts', 'action' => 'index']);
             }
         }
 
         $this->loadModel('AlertTypes');
-        $alertTypes = $this->AlertTypes->find('list');
-        $alertTypes->hydrate(false)->where(['AlertTypes.is_user' => 1, 'AlertTypes.is_deleted' => 0, 'AlertTypes.is_active' => 1]);
-        $alertTypesList = $alertTypes->toArray();
+        $alertTypeList = $this->AlertTypes->getCompanyAlertType();
+        $this->set(compact('alertTypeList'));
 
-        $this->loadModel('Permits');
-        $permits = $this->Permits->find('list', ['keyField' => 'form_id', 'valueField' => 'form_id']);
-        $permits->hydrate(false)->select(['form_id'])->where(['Permits.is_deleted' => 0, 'Permits.is_active' => 1, 'Permits.user_id' => $userId]);
-        $permitsList = $permits->toArray();
-        if (!empty($permitsList)) {
-            $this->loadModel('Forms');
-            $forms = $this->Forms->find('list');
-            $forms->hydrate(false)->where(['Forms.is_deleted' => 0, 'Forms.is_active' => 1, 'Forms.id in' => $permitsList]);
-            $formsList = $forms->toArray();
-        }
-        /* get all Operation list */
-        $this->loadModel('Operations');
-        $operations = $this->Operations->find('list');
-        $operations->hydrate(false)->where(['Operations.is_deleted' => 0]);
-        $operationsLists = $operations->toArray();
-        $this->set(compact('operationsLists'));
-        /* get all company list */
         $this->loadModel('Users');
-        $userslist = $this->Users->getStaffList($userId, 3);
-        $this->set(compact('userslist', 'alertTypesList', 'formsList'));
-        $this->set('_serialize', ['userslist', 'alertTypesList', 'formsList']);
+        $companyStaffList = $this->Users->getStaffList(Configure::read('LoggedCompanyId'));
+        $this->set(compact('companyStaffList'));
     }
 
     /*
@@ -181,107 +110,56 @@ class AlertsController extends AppController {
      * Date : 23rd Nov. 2017
      */
 
-    public function edit($id = null) {
+    public function edit($alertId) {
+        $this->set(compact('alertId'));
         $pageTitle = 'Alerts | Edit';
-        $pageHedding = 'Add Alerts';
+        $pageHedding = 'Edit Alert';
         $breadcrumb = array(
-            array('label' => 'Alerts', 'link' => 'faqs/'),
+            array('label' => 'Alerts', 'link' => 'alerts/'),
             array('label' => 'Edit'));
         $this->set(compact('breadcrumb', 'pageTitle', 'pageHedding'));
-        if ($this->Auth->user('role_id') == 3) {
-            $userId = $this->Auth->user('user_id');
-        } else {
-            $userId = $this->Auth->user('id');
+
+        $alertId = $this->Encryption->decode($alertId);
+        $alerts = $this->Alerts->getDataId($alertId);
+        if (empty($alertId)) {
+            $this->Flash->error(__('Alert not available!'));
+            return $this->redirect(['controller' => 'alerts', 'action' => 'index']);
         }
+        $this->set(compact('alerts'));
+
         if ($this->request->is('post')) {
-            $this->loadModel('AlertStaffs');
-            $this->loadModel('Users');
-            $this->loadModel('AlertPermits');
-            $this->request->data['title'] = ucfirst($this->request->data['title']);
-            $this->request->data['date'] = date('Y-m-d', strtotime($this->request->data['date']));
-            $this->request->data['user_id'] = $this->userId;
-            if (!empty($this->request->data['interval'])) {
-                $this->request->data['interval_alert'] = (int) $this->request->data['interval'];
-            }
-            $alerts = $this->Alerts->newEntity();
-            $this->Alerts->patchEntity($alerts, $this->request->data, ['validate' => 'Add']);
-            if (!$alerts->errors()) {
-                $success = $this->Alerts->save($alerts);
-
-                if ($success) {
-
-                    /* code for save alert Staff */
-                    if (!empty($this->request->data['staff_id']) && $this->request->data['alert_type_id'] == 3) {
-
-                        $conditionstaff = array('AlertStaffs.alert_id in' => $this->request->data['id']);
-                        $delStaff = $this->AlertStaffs->deleteAll($conditionstaff, false);
-
-                        foreach ($this->request->data['staff_id'] as $key => $value) {
-                            $staff['user_id'] = $value;
-                            $staff['created'] = date('Y-m-d');
-                            $staff['alert_id'] = $success->id;
-                            $staff['alert_type_id'] = $this->request->data['alert_type_id'];
-                            $staffs = $this->AlertStaffs->newEntity();
-                            $this->AlertStaffs->patchEntity($staffs, $staff);
-                            $successAlert = $this->AlertStaffs->save($staffs);
-                        }
-                        if ($successAlert) {
-                            $staffs = $this->Users->find('list', ['valueField' => 'email']);
-                            $staffs->hydrate(false)->select(['Users.email'])->where(['Users.id in' => $this->request->data['staff_id'], 'Users.is_deleted' => 0, 'Users.is_active' => 1]);
-                            $emails = $staffs->toArray();
-                            /* code for send email to multiple users and companies */
-                            $template = 'new_alert';
-                            $subject = "New Alerts";
-                            $this->Custom->sendMultipleEmail($emails, $template, $subject);
-                        }
-                    }
-                    /* code for save alert industry */
-                    if (!empty($this->request->data['form_id'])) {
-                        $value = $this->request->data['form_id'];
-                        $permit['form_id'] = $value;
-                        $permit['created'] = date('Y-m-d');
-                        $permit['alert_id'] = $success->id;
-                        $permit['alert_type_id'] = $this->request->data['alert_type_id'];
-                        $permits = $this->AlertPermits->newEntity();
-                        $this->AlertPermits->patchEntity($permits, $permit);
-                        $successAlert = $this->AlertPermits->save($permits);
-                    }
-                    $this->Flash->success(__('Alerts has been updated successfully.'));
-                    return $this->redirect(['controller' => 'alerts', 'action' => 'index', 'prefix' => 'admin']);
-                } else {
-                    $this->Flash->error(__('Alerts could not be updated'));
-                }
+            $this->request->data['Alert']['id'] = $alertId;
+            $response = $this->Alerts->saveCompanyData($this->request->data['Alert']);
+            if (!$response['flag']) {
+                $responce['msg'] = $this->Custom->multipleFlash($alerts->errors());
             } else {
-                $this->Flash->error(__($this->Custom->multipleFlash($alerts->errors())));
+                $this->_updatedBy('Alerts', $response['id']);
+                /* === Added by vipin for  add log=== */
+                $message = 'Alert updated by ' . $this->loggedusername;
+                $saveActivityLog = [];
+                $saveActivityLog['table_id'] = $response['id'];
+                $saveActivityLog['table_name'] = 'alerts';
+                $saveActivityLog['module_name'] = 'Alert Front';
+                $saveActivityLog['url'] = $this->referer();
+                $saveActivityLog['message'] = $message;
+                $saveActivityLog['activity'] = 'Edit';
+                $this->Custom->saveActivityLog($saveActivityLog);
+                $this->Flash->success(__('Alerts has been updated successfully.'));
+                return $this->redirect(['controller' => 'alerts', 'action' => 'index']);
             }
         }
-        /* get all Alert type list */
+
+        if (empty($this->request->data)) {
+            $this->request->data['Alert'] = $alerts;
+        }
 
         $this->loadModel('AlertTypes');
-        $alertTypes = $this->AlertTypes->find('list');
-        $alertTypes->hydrate(false)->where(['AlertTypes.is_user' => 1, 'AlertTypes.is_deleted' => 0, 'AlertTypes.is_active' => 1]);
-        $alertTypesList = $alertTypes->toArray();
-        /* get all Permits list */
+        $alertTypeList = $this->AlertTypes->getCompanyAlertType();
+        $this->set(compact('alertTypeList'));
 
-        $this->loadModel('Permits');
-        $permits = $this->Permits->find('list', ['keyField' => 'form_id', 'valueField' => 'form_id']);
-        $permits->hydrate(false)->select(['form_id'])->where(['Permits.is_deleted' => 0, 'Permits.is_active' => 1, 'Permits.user_id' => $userId]);
-        $permitsList = $permits->toArray();
-
-        $this->loadModel('Forms');
-        $forms = $this->Forms->find('list');
-        $forms->hydrate(false)->where(['Forms.is_deleted' => 0, 'Forms.is_active' => 1, 'Forms.id in' => $permitsList]);
-        $formsList = $forms->toArray();
         $this->loadModel('Users');
-        $userslist = $this->Users->getStaffList($userId, 3);
-
-        /* get all alert details */
-
-        $id = $this->Encryption->decode($id);
-        $alert = $this->Alerts->find()->contain(['AlertTypes', 'AlertStaffs', 'AlertPermits'])->where(['Alerts.id =' => $id, 'Alerts.is_active =' => 1, 'Alerts.is_deleted =' => 0])->first();
-
-        $this->set(compact('userslist', 'alertTypesList', 'formsList', 'alert'));
-        $this->set('_serialize', ['userslist', 'alertTypesList', 'formsList']);
+        $companyStaffList = $this->Users->getStaffList(Configure::read('LoggedCompanyId'));
+        $this->set(compact('companyStaffList'));
     }
 
     /* Function: view()
@@ -291,19 +169,84 @@ class AlertsController extends AppController {
      * Date : 23rd Nov. 2017
      */
 
-    public function view($id = null) {
+    public function view($alertId, $alertNotificationId = null) {
+        $this->set(compact('alertId'));
         $pageTitle = 'Alerts | View';
         $pageHedding = 'View Alerts';
-        $breadcrumb = array(
-            array('label' => 'Alerts', 'link' => 'faqs/'),
-            array('label' => 'View'),
-        );
+        $breadcrumb[] = array('label' => 'Alerts', 'link' => 'alerts/');
+        if ($alertNotificationId) {
+            $breadcrumb[] = array('label' => 'Notifications', 'link' => 'alerts/notification');
+        }
+        $breadcrumb[] = array('label' => 'View');
         $this->set(compact('breadcrumb', 'pageTitle', 'pageHedding'));
 
-        $id = $this->Encryption->decode($id);
-        $alert = $this->Alerts->find()->contain(['AlertTypes', 'AlertStaffs.Users', 'AlertPermits'])->where(['Alerts.id =' => $id, 'Alerts.is_active =' => 1, 'Alerts.is_deleted =' => 0])->first();
+        $alertId = $this->Encryption->decode($alertId);
+        $alerts = $this->Alerts->getAllDataId($alertId);
+        if (empty($alertId)) {
+            $this->Flash->error(__('Alert not available!'));
+            return $this->redirect(['controller' => 'alerts', 'action' => 'index']);
+        }
+        $this->set(compact('alerts'));
+        if (!empty($alertNotificationId)) {
+            $alertNotificationId = $this->Encryption->decode($alertNotificationId);
+            $this->loadModel('AlertNotifications');
+            $this->AlertNotifications->updateAll(['is_readed' => 1], ['id' => $alertNotificationId, 'user_id' => Configure::read('LoggedUserId')]);
+            if (!empty($alerts->is_repeated)) {
+                $isSubscribed = $this->AlertNotifications->find()
+                        ->hydrate(false)
+                        ->select(['AlertNotifications.is_unsubscribed'])
+                        ->where(['id' => $alertNotificationId])
+                        ->first();
+            }
+        }
+        $this->set(compact('alertNotificationId', 'isSubscribed'));
+    }
 
-        $this->set(compact('alert'));
+    public function notification() {
+        $pageTitle = 'Alert Notifications';
+        $pageHedding = 'Alert Notifications';
+        $breadcrumb = array(
+            array('label' => 'Alerts', 'link' => 'alerts/'),
+            array('label' => 'Notifications'),
+        );
+        $this->loadModel('AlertNotifications');
+        $conditions = ['AlertNotifications.is_deleted' => 0, 'AlertNotifications.user_id' => Configure::read('LoggedUserId')];
+        $this->paginate = ['conditions' => $conditions, 'contain' => ['Alerts' => function($q) {
+                    return $q->select(['Alerts.title', 'Alerts.id', 'Alerts.is_admin', 'Alerts.added_by'], 'AlertNotifications.is_unsubscribed')->where(['Alerts.is_active' => 1, 'Alerts.is_deleted' => 0]);
+                }
+            ], 'order' => ['AlertNotifications.created' => 'desc'], 'limit' => 10];
+        $alertNotifications = $this->paginate($this->AlertNotifications);
+        $this->set(compact('alertNotifications', 'breadcrumb', 'pageTitle', 'pageHedding'));
+    }
+
+    /*
+     * @Functon:saveAgencyData()
+     * @Description: use for subscribe-unsubscribe alert
+     * @By 
+     * @Date : 
+     */
+
+    public function subscribeUnsubscribeAlert() {
+        $this->autoRender = false;
+        if ($this->request->is('ajax') && !empty($this->request->data['alertNotificationId'])) {
+            $alertNotificationId = $this->Encryption->decode($this->request->data['alertNotificationId']);
+            $status = $this->request->data['status'];
+            $this->loadModel('AlertNotifications');
+            $result = $this->AlertNotifications->updateAll(['is_unsubscribed' => $status], ['id' => $alertNotificationId]);
+            if ($result) {
+                $responce['flag'] = true;
+                if ($status) {
+                    $responce['msg'] = "Alert unsubscribed successfully.";
+                } else {
+                    $responce['msg'] = "Alert subscribed successfully.";
+                }
+            } else {
+                $responce['flag'] = false;
+                $responce['msg'] = "Something went wrong!";
+            }
+            echo json_encode($responce);
+            exit;
+        }
     }
 
 }

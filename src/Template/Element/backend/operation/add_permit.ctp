@@ -19,7 +19,7 @@
                                        'options' => $permitsList,
                                         'multiple'=>"multiple",
                                         'label' => false,
-                                        'class'=> 'form-control select2 formId',
+                                        'class'=> 'form-control select2 formId permitOperations',
                                         'id'=>'categotyId',
                                         ));
                                      ?>
@@ -33,7 +33,7 @@
                                     'id'=>'addOperationId'
                                     ));
                                 ?>
-                            <div class="col-sm-12 col-xs-12 clearfix padding-top-10">
+                            <div class="col-sm-12 col-xs-12 clearfix padding-top-20">
                          <?php echo $this->Form->button('Submit', array('type'=>'submit','class'=>'btn btn-default')); ?>
                             </div>
                         </div>

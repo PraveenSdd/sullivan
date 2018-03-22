@@ -18,7 +18,7 @@ class CustomHelper extends Helper {
      */
     public function gitCompanyName($userId = null) {
         $usersTable = TableRegistry::get('Users');
-        return $usersTable->find()->select(['company', 'email', 'phone', 'first_name', 'last_anme'])->where(['id' => $userId])->first();
+        return $usersTable->find()->select(['company', 'email', 'phone', 'first_name', 'last_name'])->where(['id' => $userId])->first();
     }
 
     /**
@@ -61,62 +61,7 @@ class CustomHelper extends Helper {
         }
     }
 
-    /**
-     * @function: getIndustry()
-     * @Description: get and get Industry / operation 
-     * @param type: $id
-     * @return type : operation and category name
-     * @Date: 20 Nov. 2017
-     * @By: Ahsan Ahamad
-     */
-    public function getIndustry($id = null) {
 
-        $industriesTable = TableRegistry::get('Industries');
-        $industries = $industriesTable->find('list');
-        $industries->hydrate(false)->where(['Industries.id in ' => $id]);
-        $industry = $industries->toArray();
-        if (count($industry) > 0) {
-            return $industry;
-        } else {
-            return false;
-        }
-    }
-
-    /**
-     * @function: getAgencyIndustryList()
-     * @Description: get and get Industry / operation list related to agency
-     * @param type: $agenctId
-     * @return type : 
-     * @Date: 18 Nov. 2017
-     * @By: Ahsan Ahamad
-     */
-    public function getAgencyIndustryList($agenctId = null) {
-        $AgenyIndustriesTable = TableRegistry::get('AgenyIndustries');
-        $industries = $AgenyIndustriesTable->find();
-        $industries->hydrate(false)->contain(['Industries'])->where(['AgenyIndustries.category_id in ' => $agenctId]);
-        $industry = $industries->toArray();
-
-        if (count($industry) > 0) {
-            $countIndustry = $industry;
-        } else {
-            $countIndustry = 0;
-        }
-        return $countIndustry;
-    }
-
-    /**
-     * @function: getIndustryName()
-     * @Description: get and get Industry / operation name
-     * @param type: $id
-     * @return type : 
-     * @Date: 18 Nov. 2017
-     * @By: Ahsan Ahamad
-     */
-    public function getIndustryName($id = null) {
-        $industriesTable = TableRegistry::get('Industries');
-        $industries = $industriesTable->find()->select(['Industries.name'])->where(['Industries.id ' => $id])->first();
-        return $industries;
-    }
 
     /**
      * @function: getIndustryNameList()
@@ -197,8 +142,23 @@ class CustomHelper extends Helper {
      * @Date: 26 Nov. 2017
      * @By: Ahsan Ahamad
      */
-    public function dateTime($dateTime = null) {
-        return date('d-m-Y', strtotime($dateTime));
+    public function dateTime($dateTime = null) { 
+        return date('m-d-Y', strtotime($dateTime));
+    }
+
+   /**
+     * @function: humanReadable()
+     * @Description: convert date time 
+     * @param type: $dateTime
+     * @return type : 
+     * @Date: 26 Nov. 2017
+     * @By: Ahsan Ahamad
+     */
+  
+    public function humanReadable($dateTime = null) {
+       return $format = date('m-d-Y h:i: A', strtotime($dateTime));
+        return date("F j, Y, g:i A",strtotime($format));
+
     }
 
     /**
@@ -388,15 +348,14 @@ class CustomHelper extends Helper {
      * @Date: 4 Dec. 2017
      * @By: Ahsan Ahamad
      */
-    public function getPermitListByIndustry($industyId = null) {
+    public function getPermitListReletedOperation($operationId = null) {
         // prx($industyId);
-        $agenyIndustriesTable = TableRegistry::get('FormIndustries');
-        $permitIndustries = $agenyIndustriesTable->find()->where(['FormIndustries.industry_id' => $industyId, 'FormIndustries.is_deleted' => 0, 'FormIndustries.is_active' => 1])->all();
-        $permitIndustry = $permitIndustries->toArray();
+        $permitOperationsTable = TableRegistry::get('PermitOperations');
+        $permitOperation = $permitOperationsTable->find()->where(['PermitOperations.operation_id' => $operationId, 'PermitOperations.is_deleted' => 0, 'PermitOperations.is_active' => 1])->count();
+      
+        if (!empty($permitOperation)) {
 
-        if (!empty($permitIndustry)) {
-
-            return $permitIndustry;
+            return $permitOperation;
         } else {
 
             return false;
@@ -404,22 +363,20 @@ class CustomHelper extends Helper {
     }
 
     /**
-     * @function: getAlertListByIndustry()
-     * @Description: get form related to Agency/ Category List by Industry Id form front-end Permit
+     * @function: getAlertListReletedOperation()
+     * @Description: get alerts related to operation
      * @param type: $industyId
      * @return type : 
-     * @Date: 6 Dec. 2017
+     * @Date: 18 Jan. 2018
      * @By: Ahsan Ahamad
      */
-    public function getAlertListByIndustry($industyId = null) {
+    public function getAlertListReletedOperation($operationId = null) {
         // prx($industyId);
-        $alertIndustriesTable = TableRegistry::get('AlertIndustries');
-        $alertIndustries = $alertIndustriesTable->find()->where(['AlertIndustries.industry_id' => $industyId, 'AlertIndustries.is_deleted' => 0, 'AlertIndustries.is_active' => 1])->all();
-        $alertIndustry = $alertIndustries->toArray();
+        $alertOperationsTable = TableRegistry::get('AlertOperations');
+        $alertIndustries = $alertOperationsTable->find()->where(['AlertOperations.operation_id' => $operationId, 'AlertOperations.is_deleted' => 0, 'AlertOperations.is_active' => 1])->count();
 
-
-        if (!empty($alertIndustry)) {
-            return $alertIndustry;
+        if (!empty($alertIndustries)) {
+            return $alertIndustries;
         } else {
             return false;
         }
@@ -486,6 +443,74 @@ class CustomHelper extends Helper {
         $ermission = $permissionTable->find()->where(['Permissions.id' => $permissionId])->select(['name'])->first();
         return $ermission->name;
     }
+    
+//    ============================== Forntend =====================================
+    
+    /**
+     * @function: getIndustryNameList()
+     * @Description: get and get Industry / operation name list
+     * @param type: $id
+     * @return type : 
+     * @Date: 25 Nov. 2017
+     * @By: Ahsan Ahamad
+     */
+    public function getOperationsName($permitId = null, $user_id =  null) {
+        $locationOperationsTable = TableRegistry::get('LocationOperations');
+        $permitOperationsTable = TableRegistry::get('PermitOperations');
+        $operationsTable = TableRegistry::get('Operations');
+        
+        $operationIds = $locationOperationsTable->find('list', ['keyField' => 'id', 'valueField' => 'operation_id']);
+        $operationIds->hydrate(false)->where(['LocationOperations.user_id' => $user_id]);
+        $operationId = $operationIds->toArray();
+        
+        $operationPermitIds = $permitOperationsTable->find('list', ['keyField' => 'id', 'valueField' => 'operation_id']);
+        $operationPermitIds->hydrate(false)->where(['PermitOperations.operation_id in ' => $operationId, 'PermitOperations.permit_id'=>$permitId]);
+        $permitOperationId = $operationPermitIds->toArray();
+        
+        $operations = $operationsTable->find('list', ['keyField' => 'id', 'valueField' => 'name']);
+        $operations->hydrate(false)->where(['Operations.id in ' => $permitOperationId]);
+        $operationsList = $operations->toArray();
+       return $operationsList;
+    }
+    
+    
+     /**
+     * @function: getDashboardFormStatus()
+     * @Description: get permit status related to permit
+     * @param type: $permitId
+     * @param type: $operationId
+     * @param type: $userId
+     * @return type : 
+     * @Date: 21 Jan. 2017
+     * @By: Ahsan Ahamad
+     */
+    public function getDashboardFormStatus($permitId= null,$operationId = null,$userId = null) {
+        $userPermitsTable = TableRegistry::get('UserPermits');
+        $permitStatus = $userPermitsTable->find()->where(['UserPermits.permit_id ' => $permitId,'UserPermits.operation_id ' => $operationId,'UserPermits.user_id'=>$userId])->first();
+        if($permitStatus){
+            $statusId = $permitStatus->permit_status_id;
+        }else{
+             $statusId = 1;
+        }
+        $permitStatus = $this->getFormStatus($statusId);
+        return $permitStatus;
+    }
+    
+    /**
+     * @function: getFormHowItWork()
+     * @Description: get how it work related to permit.
+     * @param type: $permitId
+     * @return type : 
+     * @Date: 21 Jan. 2017
+     * @By: Ahsan Ahamad
+     */
+    public function getFormHowItWork($permitId = null){
+        
+        $permitInstructionsTable = TableRegistry::get('PermitInstructions');
+        $permitInstructions = $permitInstructionsTable->find()->where(['PermitInstructions.permit_id ' => $permitId])->all();
+        return $permitInstructions;
+    }
+
 
 }
 

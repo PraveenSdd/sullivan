@@ -7,20 +7,15 @@
             <div class="box-header with-border">
                 <br>
                 <!-- general form elements -->
-           <?php  echo $this->Form->create('Staff', array('url' => array('controller' => 'staffs', 'action' => 'edit'),'id'=>'addStaff',' method'=>'post','class'=>'form-horizontal')); ?>
                 <div class="col-md-12">
-                    <div class="row  text-right">
-                        <?php echo $this->Html->link($this->Html->image('icons/delete.png'),'javasript:void();',
-                                array('class'=>'myalert-delete',
-                                    'data-url'=>"/staffs/index",
-                                    'title'=>"Delete",
-                                    'data-title'=>$this->request->data['first_name'],
-                                    'data-id'=>$this->request->data['id'],
-                                    'data-modelname'=>"Users",'escape' => false)); ?>
-
+                      <?php if($LoggedPermissionId ==1){ ?>
+                    <div class="row text-right">
+                        <?= $this->Form->postLink($this->Html->image('icons/delete.png'), ['controller' => 'customs', 'action' => 'delete', $this->Encryption->encode($this->request->data['id'])],['data'=>['model_name'=>'Users','module_name'=>'Staff','table_name'=>'users','title'=>$this->request->data['first_name'],'redirect_url'=>"/admin/staffs/index",'foreignId'=>'','subModel'=>''], 'escape'=>false, 'class'=>'deleteConfirm']); ?>
                     </div>
+                      <?php } ?>
                 </div>
                 <div class="col-md-12">
+                    <?php  echo $this->Form->create('Staff', array('url' => array('controller' => 'staffs', 'action' => 'edit'),'id'=>'addStaff',' method'=>'post','class'=>'form-horizontal')); ?>
                     <div class="box-body"> 
 
 
@@ -58,7 +53,7 @@
                                 'placeholder'=>'Email',
                                 'class'=>'form-control required',
                                 'label' => false,
-                                'data-id'=>'',
+                                'data-id'=>$this->request->data('id'),
                                 'data-parentId'=>'',
                                     'maxlength'=>40,
                                ));  
@@ -92,6 +87,8 @@
                                                  ));  
                                               ?>
                                 </div>
+                                <label id="phone-error" class="authError" for="phone" style="display:none;">Please enter phone number</label>
+
 
                             </div>
                         </div>
@@ -109,14 +106,14 @@
 
                             </div>
                             <div class="col-sm-6">
-                                <label for="title" class=" control-label">Level<span class="text-danger">*</span> </label>
+                                <label for="title" class=" control-label">Permission Level<span class="text-danger">*</span> </label>
                                 <?php 
                                     echo $this->Form->input('permission_id', array(
                                        'type' => 'select',
                                        'options' => $permissionsList,
                                         'empty'=>'Please select level',
                                         'label' => false,
-                                        'class'=> 'form-control inp-add-state sel-add-state',
+                                        'class'=> 'form-control sel-level',
                                         'label' => false,
 
                                         ));
@@ -208,46 +205,17 @@
                                     ?>
 
                             </div>
-                            <div class="col-sm-6">
 
-                                <div class="phone-block padding-top-5" >
-                                    <label>Phone Number </label>
-                                     <?php echo $this->Form->input('Address.phone', array(
-                                                'placeholder'=>'Phone number ',
-                                                'class'=>'form-control inp-phone inp-address_phone' ,
-                                                'label' => false,
-                                                'div'=>false,
-                                                'legend' => false,
-                                                'value'=>$this->request->data['address']['phone'],
-                                                 ));  
-                                    ?>
-                                </div>
-                                <div class="phone-extension-block padding-top-5">
-                                    <label> Extension </label>
-
-                                    <?php echo $this->Form->input('Address.phone_extension', array(
-                                                'class'=>'form-control phone-extension-address inp-add_address-country_code',
-                                                'id'=>'phone_extension',
-                                                 'placeholder'=>'Extension ',
-                                                 'maxlength'=>4,
-                                                'div'=>false,
-                                                'legend' => false,
-                                        'label' => false,
-                                        'value'=>$this->request->data['address']['phone_extension'],
-                                                 ));  
-                                              ?>
-                                </div>
-                            </div>
 
                         </div>
                     </div>
 <?php echo $this->Form->hidden('Address.id', array('value'=>$this->request->data['address']['id'], ));  ?>
-<?php echo $this->Form->hidden('PermissionAcces.id', array('value'=>$this->request->data['permission_acces']['id'], ));  ?>
+<?php //echo $this->Form->hidden('PermissionAcces.id', array('value'=>$this->request->data['permission_acces']['id'], ));  ?>
 <?php echo $this->Form->hidden('id', array());  ?>
 
                     <div class="box-footer button-form-sub">
                     <?php echo $this->Html->link('Cancel',['controller'=>'staffs','action'=>'index'],array('class'=>'btn btn-warning','escape' => false)); ?> &nbsp;&nbsp;
- <?php echo $this->Form->button('Update', array('type'=>'submit','class'=>'btn btn-primary')); ?>
+ <?php echo $this->Form->button('Update', array('type'=>'submit','class'=>'btn btn-primary confirmBeforeSave')); ?>
                     </div>
 
              <?php echo $this->Form->end();?>

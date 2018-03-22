@@ -70,7 +70,7 @@
                     <?php } }?>
                     </tbody>
                 </table>
-                 <?php echo $this->element('pagination'); ?>
+                 <?php echo $this->element('layout/backend/default/pagination'); ?>
             </div>
         </div>
     </div>

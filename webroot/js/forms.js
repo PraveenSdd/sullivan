@@ -64,10 +64,13 @@ $(document).ready(function () {
 
     function formAttachmentFields() {
         var inpFormAttachments = 1
-        var countFormRequiredDoc = $('.div-form-attachments .form-required-docs').length;
-        $('.div-form-attachments').last().append($('.form-required-docs-fields').html());
-
-        formAttachments = inpFormAttachments;
+          var countFormRequiredDoc = $('.div-form-attachments .form-required-docs').length;
+      
+            var diffFormAttachments = inpFormAttachments;
+            for (var countDocs = 1; countDocs <= diffFormAttachments; countDocs++) {
+                $('.div-form-attachments').append($('.form-required-docs-fields').html());
+            }
+     
         resetAttachmentFields();
     }
 
@@ -78,22 +81,25 @@ $(document).ready(function () {
      */
 
     function resetAttachmentFields() {
+        
         var docSerialedit;
         if (docSerialedit > 0) {
             var docSerial = docSerialedit + 1;
         } else {
             var docSerial = 1;
         }
+      
         $('.div-form-attachments .form-required-docs').each(function () {
             $(this).find('.docs-count').html(docSerial);
             $(this).find('.form-required-docs-name').attr('name', 'form_attachment[' + docSerial + '][document_name]');
             $(this).find('.form-required-docs-name').attr('id', 'document_name' + docSerial);
-            $(this).find('.form-required-docs-sample').attr('id', 'document_sample' + docSerial);
-            $(this).find('.form-required-docs-sample').attr('name', 'form_attachment[' + docSerial + '][document_sample][]');
+//            $(this).find('.form-required-docs-sample').attr('id', 'document_sample' + docSerial);
+//            $(this).find('.form-required-docs-sample').attr('name', 'form_attachment[' + docSerial + '][document_sample][]');
 
             $(this).find('.form-required-docs-required').attr('id', 'document_required' + docSerial);
             $(this).find('.form-required-docs-required').attr('name', 'form_required[' + docSerial + '][document_required][]');
             docSerial++;
+             
         });
     }
 
@@ -283,29 +289,6 @@ $(document).ready(function () {
             $("#formList").html();
         }
     });
-
-    /* this is use for open form view model */
-
-    $(document).on('click', '[data-id]', function () {
-        var parentId = $(this).data('id');
-        if (parentId) {
-            $.ajax({
-                url: "/Forms/downloadViewForm",
-                type: "Post",
-                dataType: 'html',
-                data: {id: parentId},
-                success: function (response) {
-                    if (response) {
-                        $('.imgDownload').html(response);
-                        $('#myModal').modal('show');
-                    }
-                }
-            });
-        } else {
-            $("#ProductCategoryId").html();
-        }
-    });
-
 
     /* change  form status form front-end */
 

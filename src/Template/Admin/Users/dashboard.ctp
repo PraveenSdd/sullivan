@@ -19,13 +19,13 @@ echo $this->Html->script(['/vendor/canvasjs.min']); ?>
     <div class="col-lg-3 col-xs-6">
         <div class="small-box bg-green">
             <div class="inner">
-                <h3><?=$permit;?></h3>
+                <h3><?=$permits;?></h3>
                 <p>Permit</p>
             </div>
             <div class="icon">
                 <i class="ion ion-folder"></i>
             </div>
-             <?php echo $this->Html->link('More info <i class="fa fa-arrow-circle-right"></i>',['controller'=>'forms','action'=>'index'],array('class'=>'small-box-footer','escape' => false)); ?> 
+             <?php echo $this->Html->link('More info <i class="fa fa-arrow-circle-right"></i>',['controller'=>'permits','action'=>'index'],array('class'=>'small-box-footer','escape' => false)); ?> 
 
         </div>
     </div>
@@ -49,7 +49,7 @@ echo $this->Html->script(['/vendor/canvasjs.min']); ?>
         <!-- small box -->
         <div class="small-box bg-red">
             <div class="inner">
-                <h3><?php echo $category; ?></h3>
+                <h3><?php echo $agencies; ?></h3>
 
                 <p>Agency</p>
             </div>
@@ -57,7 +57,7 @@ echo $this->Html->script(['/vendor/canvasjs.min']); ?>
 
                 <i class="ion ion-pie-graph"></i>
             </div>
-               <?php echo $this->Html->link('More info <i class="fa fa-arrow-circle-right"></i>',['controller'=>'categories','action'=>'index'],array('class'=>'small-box-footer','escape' => false)); ?> 
+               <?php echo $this->Html->link('More info <i class="fa fa-arrow-circle-right"></i>',['controller'=>'agencies','action'=>'index'],array('class'=>'small-box-footer','escape' => false)); ?> 
         </div>
     </div>
 </div>
@@ -65,15 +65,14 @@ echo $this->Html->script(['/vendor/canvasjs.min']); ?>
     <section class="col-lg-12 connectedSortable">
         <div class="nav-tabs-custom">
             <div class="tab-content no-padding">
-                <div id="chartContainer" style="height: 370px; width: 100%;"></div>
+              <?php echo $this->element('backend/logs/log'); ?>
             </div>
         </div>
-
     </section>
 </div>
 <!-- /.js for dashboard graph chart -->
 <script>
-    window.onload = function () {
+    /*window.onload = function () {
 
         var chart = new CanvasJS.Chart("chartContainer", {
             animationEnabled: true,
@@ -88,7 +87,7 @@ echo $this->Html->script(['/vendor/canvasjs.min']); ?>
                 tickColor: "#4F81BC"
             },
             axisY2: {
-                title: "Transactionsy",
+                title: "Transaction",
                 titleFontColor: "#C0504E",
                 lineColor: "#C0504E",
                 labelFontColor: "#C0504E",
@@ -112,12 +111,12 @@ echo $this->Html->script(['/vendor/canvasjs.min']); ?>
                 },
                 {
                     type: "column",
-                    name: "Transactionsy",
-                    legendText: "Transactionsy",
+                    name: "Transaction",
+                    legendText: "Transaction",
                     axisYType: "secondary",
                     showInLegend: true,
                     dataPoints: [
-                        {label: "Transactionsy", y: 10.46},
+                        {label: "Transaction", y: 10.46},
                     ]
                 }]
         });
@@ -132,5 +131,5 @@ echo $this->Html->script(['/vendor/canvasjs.min']); ?>
             chart.render();
         }
 
-    }
+    }*/
 </script>

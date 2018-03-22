@@ -12,6 +12,8 @@ use App\Model\Entity\CountriesTable;
 
 class LocationsController extends AppController {
 
+    public $helpers = ['Location'];
+
     public function initialize() {
         parent::initialize();
         $this->loadComponent('Paginator');
@@ -25,7 +27,6 @@ class LocationsController extends AppController {
      */
 
     public function index() {
-        $this->viewBuilder()->setLayout('dashboard');
         $pageTitle = 'Locations';
         $pageHedding = 'Locations';
         $breadcrumb = array(
@@ -33,12 +34,19 @@ class LocationsController extends AppController {
         );
         $this->set(compact('breadcrumb', 'pageTitle', 'pageHedding'));
         $this->loadModel('UserLocations');
-        $conditions = ['UserLocations.is_deleted' => 0, 'UserLocations.user_id' => $this->Auth->user('id')];
+        if ($this->Auth->user('user_id') == 0) {
+            $user_id = $this->Auth->user('id');
+        } else {
+            $user_id = $this->Auth->user('user_id');
+        }
+        $conditions = ['UserLocations.is_deleted' => 0, 'UserLocations.user_id' => $user_id];
         if ($this->request->query('title')) {
             $conditions['UserLocations.title LIKE'] = '%' . $this->request->query('title') . '%';
         }
         $this->paginate = [
-            'contain' => ['LocationIndustries'],
+            'contain' => ['LocationOperations', 'Users' => function($q) {
+                    return $q->select(['Users.id', 'Users.first_name', 'Users.last_name']);
+                }],
             'select' => ['UserLocations.title', 'UserLocations.id', 'UserLocations.is_active', 'UserLocations.created'],
             'conditions' => $conditions,
             'limit' => 10,
@@ -63,7 +71,7 @@ class LocationsController extends AppController {
         );
         $this->set(compact('breadcrumb', 'pageTitle', 'pageHedding'));
         $this->loadModel('UserLocations');
-        $this->loadModel('LocationIndustries');
+        $this->loadModel('LocationOperations');
         $this->loadModel('Countries');
         $this->loadModel('States');
         if ($this->request->is('post')) {
@@ -72,20 +80,30 @@ class LocationsController extends AppController {
             $UserLocation = $this->UserLocations->newEntity();
             /* these are line check serversite validation and save data  */
             $this->request->data['user_id'] = $this->Auth->user('id');
+            $this->request->data['created'] = date('Y-m-d H:i:s');
+            $this->request->data['is_operation'] = 1;
+            $this->request->data['is_company'] = 0;
+            $this->request->data['country_id'] = 254; //US
+            $this->request->data['state_id'] = 154; //New York 
+
             $this->UserLocations->patchEntity($UserLocation, $this->request->data, ['validate' => 'Add']);
             if (!$UserLocation->errors()) {
                 $success = $this->UserLocations->save($UserLocation);
                 if ($success) {
-                    foreach ($this->request->data['industry_id'] as $industry) {
-
-                        $indusrtyData['industry_id'] = $industry;
-                        $indusrtyData['user_id'] = $this->Auth->user('id');
-                        $indusrtyData['user_location_id'] = $success->id;
-                        $indusrtyData['created'] = date('Y-m-d H:i:s');
-                        $locationIndustries = $this->LocationIndustries->newEntity();
-                        $this->LocationIndustries->patchEntity($locationIndustries, $indusrtyData);
-                        $this->LocationIndustries->save($locationIndustries);
-                    }
+                    $this->_updatedBy('UserLocations', $success->id);
+                    $this->LocationOperations->saveOperations($this->Auth->user('id'), $success->id, $this->request->data['operation_id']);
+                    /* === Added by vipin for  add log=== */
+                    $message = 'Location added by ' . $this->loggedusername;
+                    $saveActivityLog = [];
+                    $saveActivityLog['table_id'] = $success->id;
+                    $saveActivityLog['table_name'] = 'user_locations';
+                    $saveActivityLog['module_name'] = 'Location Front';
+                    $saveActivityLog['url'] = $this->referer();
+                    $saveActivityLog['message'] = $message;
+                    $saveActivityLog['activity'] = 'Add';
+                    $this->Custom->saveActivityLog($saveActivityLog);
+                    $this->Flash->success(__('Location has been saved successfully.'));
+                    return $this->redirect(['controller' => 'locations', 'action' => 'index']);
                     $this->Flash->success(__('Location has been saved successfully.'));
                     return $this->redirect(['controller' => 'locations', 'action' => 'index']);
                 } else {
@@ -95,13 +113,11 @@ class LocationsController extends AppController {
                 $this->Flash->error(__($this->Custom->multipleFlash($UserLocation->errors())));
             }
         }
-        $this->loadModel('Industries');
-        $industries = $this->Industries->find('list', ['valueField' => 'name']);
-        $industries->hydrate(false)->select(['Industries.name'])->where(['Industries.is_deleted' => 0, 'Industries.is_active' => 1]);
-        $industryList = $industries->toArray();
-        $this->set(compact('industryList'));
+        $this->loadModel('Operations');
+        $operationList = $this->Operations->getList();
+        $this->set(compact('operationList'));
 
-        $this->set('_serialize', ['industryList']);
+        $this->set('_serialize', ['operationList']);
     }
 
     /* Function:edit() 
@@ -111,7 +127,8 @@ class LocationsController extends AppController {
      * Date : 17th Nov. 2017
      */
 
-    public function edit($id = null) {
+    public function edit($locationId = null) {
+        $this->set(compact('locationId'));
         $pageTitle = 'Locations | Edit';
         $pageHedding = 'Edit';
         $breadcrumb = array(
@@ -122,34 +139,45 @@ class LocationsController extends AppController {
         $this->loadModel('UserLocations');
         $this->loadModel('Countries');
         $this->loadModel('States');
+        $this->loadModel('LocationOperations');
+
+        $locationId = $this->Encryption->decode($locationId);
+        $locationData = $this->UserLocations->find()->hydrate(false)->where(['UserLocations.id =' => $locationId])->first();
+
         if ($this->request->is('post')) {
             $UserLocation = $this->UserLocations->newEntity();
-            /* these are line check serversite validation and save data  */
-            $this->request->data['user_id'] = $this->Auth->user('id');
+            $this->request->data['id'] = $locationId;
+            if ($locationData['is_company'] == 1 && !isset($this->request->data['is_operation'])) {
+                $this->request->data['is_operation'] = 0;
+            } else {
+                $this->request->data['is_operation'] = 1;
+            }
+
             if (!empty($this->request->data['user_location_id'])) {
-                $UserLocation = $this->UserLocations->get($this->request->data['user_location_id']);
+                $UserLocation = $this->UserLocations->get($locationId);
             }
             $this->UserLocations->patchEntity($UserLocation, $this->request->data, ['validate' => 'Add']);
             if (!$UserLocation->errors()) {
                 $success = $this->UserLocations->save($UserLocation);
                 if ($success) {
-
-                    $this->loadModel('LocationIndustries');
-                    if ($this->request->data['user_location_id']) {
-                        $deleteId = $this->request->data['user_location_id'];
-                        $condition = array('UserIndustries.user_location_id' => $deleteId);
-                        $this->LocationIndustries->deleteAll($condition, false);
+                    $this->_updatedBy('UserLocations', $success->id);
+                    # Save new selected Operations                    
+                    if ($this->request->data['is_operation'] == 1) {
+                        $this->LocationOperations->updateOperations($this->Auth->user('id'), $locationId, $this->request->data['operation_id']);
+                    } else {
+                        # delete all Assocaited Operation basis on user-location-id
+                        $this->LocationOperations->updateOperations($this->Auth->user('id'), $locationId);
                     }
-                    foreach ($this->request->data['industry_id'] as $industry) {
-                        $indusrtyData['industry_id'] = $industry;
-                        $indusrtyData['user_id'] = $this->Auth->user('id');
-                        $indusrtyData['user_location_id'] = $success->id;
-                        $indusrtyData['created'] = date('Y-m-d H:i:s');
-                        $locationIndustries = $this->LocationIndustries->newEntity();
-                        $this->LocationIndustries->patchEntity($locationIndustries, $indusrtyData);
-                        $this->LocationIndustries->save($locationIndustries);
-                    }
-
+                    /* === Added by vipin for  add log=== */
+                    $message = 'Location updated by ' . $this->loggedusername;
+                    $saveActivityLog = [];
+                    $saveActivityLog['table_id'] = $success->id;
+                    $saveActivityLog['table_name'] = 'user_locations';
+                    $saveActivityLog['module_name'] = 'Location Front';
+                    $saveActivityLog['url'] = $this->referer();
+                    $saveActivityLog['message'] = $message;
+                    $saveActivityLog['activity'] = 'Edit';
+                    $this->Custom->saveActivityLog($saveActivityLog);
                     $this->Flash->success(__('Location has been saved successfully.'));
                     return $this->redirect(['controller' => 'locations', 'action' => 'index']);
                 } else {
@@ -160,18 +188,21 @@ class LocationsController extends AppController {
             }
         }
 
-        $id = $this->Encryption->decode($id);
-        $location = $this->UserLocations->find()->hydrate(false)
-                        ->contain(['LocationIndustries'])->where(['UserLocations.id =' => $id])->first();
+        $this->loadModel('Operations');
+        $operationList = $this->Operations->getList();
+        $this->set(compact('operationList'));
 
-        $this->loadModel('Industries');
-        $industries = $this->Industries->find('list', ['valueField' => 'name']);
-        $industries->hydrate(false)->select(['Industries.name'])->where(['Industries.is_deleted' => 0, 'Industries.is_active' => 1]);
-        $industryList = $industries->toArray();
+        $this->loadModel('LocationOperations');
+        $locationOperationIds = $this->LocationOperations->getOperationIdByLocationId($locationId);
+        $this->set(compact('locationOperationIds'));
 
 
-        $this->set(compact('location', 'industryList'));
-        $this->set('_serialize', ['industryList']);
+        $this->set(compact('locationData'));
+        $this->set('_serialize');
+
+        if (empty($this->request->data)) {
+            $this->request->data = $locationData;
+        }
     }
 
     /* Function:view() 
@@ -193,7 +224,7 @@ class LocationsController extends AppController {
 
         $id = $this->Encryption->decode($id);
         $location = $this->UserLocations->find()->hydrate(false)
-                        ->contain(['LocationIndustries'])->where(['UserLocations.id =' => $id])->first();
+                        ->where(['UserLocations.id =' => $id])->first();
         $this->set(compact('location'));
     }
 

@@ -34,6 +34,16 @@ class AddressesTable extends Table {
         return $validator;
     }
 
+    public function addAddress($address = array()){
+        prx($address);
+        if($address['address_id']){
+            $addresses = $this->get($address['address_id']);
+        }else{
+            $addresses = $this->newEntity();
+        }
+        $this->patchEntity($addresses, $address);
+        $successAddress = $this->save($addresses);
+    } 
     
 }
 

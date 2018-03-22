@@ -16,25 +16,25 @@ class Address extends Entity
     protected function _setAddress1($address1)
     {
         if (strlen($address1) > 0) {
-            return (trim($address1));
+            return $this->setUcWords($address1);
         }
     }
    protected function _setAddress2($address2)
     {
         if (strlen($address2) > 0) {
-            return (trim($address2));
+            return $this->setUcWords($address2);
         }
     }
    protected function _setCity($city)
     {
         if (strlen($city) > 0) {
-            return (ucfirst(trim($city)));
+            return $this->setUcWords($city);
         }
     }
    protected function _setZipcode($zipcode)
     {
         if (strlen($zipcode) > 0) {
-            return (trim($zipcode));
+            return $this->setUcWords($zipcode);
         }
     }
 }

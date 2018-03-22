@@ -10,10 +10,10 @@ return [
      * true: Errors and warnings shown.
      */
     'debug' => filter_var(env('DEBUG', true), FILTER_VALIDATE_BOOLEAN),
-
+    
+    
     /**
      * Configure basic information about the application.
-     *
      * - namespace - The namespace to find app classes under.
      * - defaultLocale - The default locale for translation, formatting currencies and numbers, date and time.
      * - encoding - The encoding used for HTML + database connections.
@@ -156,7 +156,7 @@ return [
         'log' => true,
         'trace' => true,
     ],
-
+  
     /**
      * Email configuration.
      *
@@ -193,8 +193,12 @@ return [
             'host' => 'ssl://smtp.gmail.com',
             'port' => 465,
             'className' => 'Smtp',
-            'username' => 'sdd.sdei@gmail.com',
-            'password' => 'SDEI#2017chdSDD',
+            //'username' => 'sddos.sdei@gmail.com',
+            //'password' => 'sdei#2017',
+            //'username' => 'sdd.sdei@gmail.com',
+            //'password' => 'SDEI#2017chdSDD',
+            'username' => 'pravins.smart@gmail.com',
+            'password' => 'Smart@#1008',
             'context' => [
                 'ssl' => [
                     'verify_peer' => false,

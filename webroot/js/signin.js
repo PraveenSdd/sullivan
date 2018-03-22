@@ -5,8 +5,10 @@
 
 
 $(document).ready(function () {
+    $(document).on("click", ".red-reg-pg", function () {
+        window.location = '/signup';
+    });
     $("#signIn").on('click', function () {
-
         $("#signin").validate({
             debug: false,
             errorClass: "authError",
@@ -30,11 +32,12 @@ $(document).ready(function () {
                     url: "/users/ajaxLogin",
                     type: "Post",
                     data: $('#signin').serialize(),
+                    dataType:'JSON',
                     success: function (response) {
-                        if (response == 'success') {
+                        if (response.statusCode == 200) {
                             window.location = '/dashboard';
                         } else {
-                            $('#msg').html(response);
+                            $('#msg').html(response.message);
                         }
                     }
                 });

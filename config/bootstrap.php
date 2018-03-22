@@ -1,4 +1,5 @@
 <?php
+
 /**
  * CakePHP(tm) : Rapid Development Framework (https://cakephp.org)
  * Copyright (c) Cake Software Foundation, Inc. (https://cakefoundation.org)
@@ -12,7 +13,6 @@
  * @since         0.10.8
  * @license       https://opensource.org/licenses/mit-license.php MIT License
  */
-
 /*
  * Configure paths required to find CakePHP + general filepath constants
  */
@@ -53,9 +53,9 @@ use Cake\Utility\Security;
 if (!env('APP_NAME') && file_exists(CONFIG . '.env')) {
     $dotenv = new \josegonzalez\Dotenv\Loader([CONFIG . '.env']);
     $dotenv->parse()
-        ->putenv()
-        ->toEnv()
-        ->toServer();
+            ->putenv()
+            ->toEnv()
+            ->toServer();
 }
 
 /*
@@ -180,13 +180,13 @@ ServerRequest::addDetector('tablet', function ($request) {
  * @link https://book.cakephp.org/3.0/en/core-libraries/internationalization-and-localization.html#parsing-localized-datetime-data
  */
 Type::build('time')
-    ->useImmutable();
+        ->useImmutable();
 Type::build('date')
-    ->useImmutable();
+        ->useImmutable();
 Type::build('datetime')
-    ->useImmutable();
+        ->useImmutable();
 Type::build('timestamp')
-    ->useImmutable();
+        ->useImmutable();
 
 /*
  * Custom Inflector rules, can be set to correctly pluralize or singularize
@@ -216,14 +216,21 @@ if (Configure::read('debug')) {
     Plugin::load('DebugKit', ['bootstrap' => true]);
 }
 
-define('BASE_URL', 'http://34.211.31.84:8013');
+define('BASE_URL', 'http://'.$_SERVER['HTTP_HOST']);
 
 define('PAGINATION_LIMIT', 10);
 
-$isTestMode = true; if($isTestMode){ 
-    define('PAYPAL_MODE', 'sandbox'); 
-    define('PAYPAL_HOST', 'https://sandbox.paypal.com'); 
-    } else {
+$isTestMode = true;
+if ($isTestMode) {
+    define('STRIPE_MODE', 'sandbox');
+    define('PAYPAL_MODE', 'sandbox');
+    define('PAYPAL_HOST', 'https://sandbox.paypal.com');
+    define('STRIPE_SECRET_KEY', 'sk_test_STQYfUB3s57BI02GPqD7MwMe');
+    define('STRIPE_PUBLISHABLE_KEY', 'pk_test_vzrJZTLxh2ZnOJVBdcOwIuaj');
+} else {
     define('PAYPAL_MODE', 'live');
     define('PAYPAL_HOST', 'https://www.paypal.com');
-    }
+    define('STRIPE_SECRET_KEY', 'sk_test_STQYfUB3s57BI02GPqD7MwMe');
+    define('STRIPE_PUBLISHABLE_KEY', 'pk_test_vzrJZTLxh2ZnOJVBdcOwIuaj');
+    define('STRIPE_MODE', 'live');
+}

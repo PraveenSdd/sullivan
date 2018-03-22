@@ -28,7 +28,7 @@ $(function () {
   });
 
   // bootstrap WYSIHTML5 - text editor
-  $('.textarea').wysihtml5();
+  //$('.textarea').wysihtml5();
 
   $('.daterange').daterangepicker({
     ranges   : {
@@ -42,7 +42,7 @@ $(function () {
     startDate: moment().subtract(29, 'days'),
     endDate  : moment()
   }, function (start, end) {
-    window.alert('You chose: ' + start.format('MMMM D, YYYY') + ' - ' + end.format('MMMM D, YYYY'));
+    yndow.alert('You chose: ' + start.format('MMMM D, YYYY') + ' - ' + end.format('MMMM D, YYYY'));
   });
 
   /* jQueryKnob */

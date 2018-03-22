@@ -1,3 +1,19 @@
+@media screen and (min-width:1440px){
+    body.body-index { background-position-y:-25%;}
+}
+
+@media screen and (min-width:1600px){
+    body.body-index { background-position-y:-150%;}
+}
+
+@media screen and (min-width:1680px){
+    body.body-index { background-position-y:-200%;}
+}
+
+@media screen and (min-width:1920px){
+    body.body-index { background-position-y:-250%;}
+}
+
 @media screen and (max-width:1024px){
 body.body-main { padding-left:0;padding-right:0;}
 .left-sidebar { left:-220px;}

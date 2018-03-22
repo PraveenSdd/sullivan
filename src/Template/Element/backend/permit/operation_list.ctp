@@ -1,5 +1,5 @@
  <?php   ?>
-<table class="table table-responsive">
+<table class="table table-responsive tbl-border-bottom">
     <thead>
         <tr>
             <th>Operation Name</th>
@@ -8,22 +8,21 @@
         </tr>
     </thead>
     <tbody>
-        <?php if(!empty($form['operations'])){ 
-                  if(!empty($form['operations']->toArray())){
-            foreach($form['operations'] as $operation){  ?>
+        <?php if(isset($permitOperations) && !$permitOperations->isEmpty()){ 
+            foreach($permitOperations as $permitOperation){  ?>
         <tr>
-            <td class="text-left"><?=$operation['operation']['name']?></td>
-            <td class="text-left"><?php echo $this->Custom->dateTime($operation['modified'])?></td>
+            <td class="text-left">
+                  <?php echo $this->Html->link(htmlentities($permitOperation['operation']['name']),['controller'=>'operations','action'=>'view',$this->Encryption->encode($permitOperation['operation']['id'])],array('title'=>'View','escape' => false)); ?>
+            </td>
+            <td class="text-left"><?php echo $this->Custom->dateTime($permitOperation['modified'])?></td>
             <th>
-                 <?php echo $this->Html->link($this->Html->image('icons/delete.png'),'javascript:void(0);',array('escape' => false,'title'=>'Delete','data-url'=>"/admin/forms/edit/".$this->Encryption->encode( $operation['permit_id']), 'data-title'=>$operation['operation']['name'],'data-modelname'=>'PermitOperations','data-id'=> $operation['id'],'class'=>"myalert-delete")); ?> 
-
+                 <?php if($LoggedPermissionId !=3){
+                     echo $this->Form->postLink($this->Html->image('icons/delete.png'), ['controller' => 'customs', 'action' => 'delete', $this->Encryption->encode($permitOperation['id'])],['data'=>['model_name'=>'PermitOperations','module_name'=>'Permit Operation','table_name'=>'permit_operations','title'=>htmlentities($permitOperation['operation']['name']),'redirect_url'=>$redirectHere,'foreignId'=>'','subModel'=>''], 'escape'=>false, 'class'=>'deleteConfirm']);
+                 }?> 
             </th>
         </tr>
         <?php }
-        }else{ ?>
-        <tr>
-            <td colspan="6"> Record not found </td></tr>
-       <?php } 
+        
         }else{ ?>
         <tr>
             <td colspan="6"> Record not found </td></tr>

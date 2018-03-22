@@ -5,8 +5,8 @@
     <h2 class="pull-left"><?php echo $pageHedding; ?></h2>
     <div class="clearfix"></div>
     <div class="main-action-btn pull-right clearfix">
-        <a href="javascript:void(0);" class="action-txt">Search Here</a>
-             <?php echo $this->Html->link('Add',['controller'=>'locations','action'=>'add'],array('class'=>'btn btn-default','escape' => false)); ?>
+<!--        <a href="javascript:void(0);" class="action-txt">Search Here</a>-->
+             <?php  echo $this->Html->link('Add',['controller'=>'locations','action'=>'add'],array('class'=>'btn btn-default','escape' => false)); ?>
     </div>
     <div class="clearfix"></div>
   
@@ -15,9 +15,10 @@
         <table class="table-striped">
             <thead>
                 <tr>
-                    <th scope="col"><?php echo $this->Paginator->sort('tile', 'Label'); ?></th>
-                    <th scope="col"><?php echo $this->Paginator->sort('tile', 'Operation'); ?></th>
+                    <th scope="col"><?php echo $this->Paginator->sort('title', 'Label'); ?></th>
+                    <th scope="col">Operation</th>
                     <th scope="col"><?php echo $this->Paginator->sort('modified', 'Last Modification'); ?></th>
+                    <th scope="col">Modified By</th>       
                     <th scope="col">Action</th>       
                 </tr>
             </thead>
@@ -30,26 +31,14 @@
                      ?>
                 <tr scope="row">
                     <td><?= $location->title; ?></td>
-                    <td><?php if(!empty($location['location_industries'])){
-                                $industries= array();
-                                
-                                foreach( $location['location_industries'] as $industry){
-                                    $industries[] = $industry['industry_id'];
-                                }
-                               
-                            $industry =  $this->Custom->getIndustry($industries);
-                            if(!empty($industry)){
-                            echo implode(', ', $industry);
-                            
-                            } 
-                            }?>
-
+                    <td><?php $operations =  $this->Location->getOperationListByLocationId($location->id);
+                            echo count($operations) .' ('.implode(', ', $operations).')';
+                        ?>
                     </td>
                     <td><?= date("d-m-Y", strtotime($location->modified)); ?></td>
+                    <td><?= @$location->user->first_name; ?></td>
                     <td class="center">
-
                                 <?php echo $this->Html->link($this->Html->image("icons/edit.png"),['controller'=>'locations','action'=>'edit',$id],array('title'=>'Edit','escape' => false)); ?> &nbsp;&nbsp;
-
                                  <?php echo $this->Html->link($this->Html->image("icons/view.png",array('width'=>'25px')),['controller'=>'locations','action'=>'view',$id],array('title'=>'View','escape' => false)); ?> &nbsp;&nbsp;
                     </td>
                 </tr>

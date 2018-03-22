@@ -13,7 +13,7 @@ class OperationsController extends AppController {
 
     public function initialize() {
         parent::initialize();
-        if (!$this->request->getParam('admin') && $this->Auth->user('role_id') != 1) {
+        if (!$this->request->getParam('admin') && $this->Auth->user('role_id') != 1 && $this->Auth->user('role_id') != 4) {
             return $this->redirect('/');
         }
         $this->loadComponent('Paginator');
@@ -30,30 +30,99 @@ class OperationsController extends AppController {
 
     public function index() {
 
-        $pageTitle = 'Operation';
-        $pageHedding = 'Operation';
+        $pageTitle = 'Manage Operations';
+        $pageHedding = 'Manage Operations';
         $breadcrumb = array(
-            array('label' => 'Operation'),
+            array('label' => 'Manage Operations'),
         );
         $this->set(compact('breadcrumb', 'pageTitle', 'pageHedding'));
         $this->loadModel('Operations');
         $conditions = ['Operations.is_deleted' => 0, 'Operations.is_active' => 1];
 
-        if (isset($this->request->query['name']) && $this->request->query['name'] != '') {
-            $conditions['Operations.name LIKE'] = '%' . $this->request->query['name'] . '%';
+        if (isset($this->request->data['name']) && $this->request->data['name'] != '') {
+            $conditions['Operations.name LIKE'] = '%' . $this->request->data['name'] . '%';
         }
 
         if ($this->request->query) {
             $this->request->data = $this->request->query;
         }
+
         $this->paginate = [
+            'contain' => ['Users' => function($q) {
+                    return $q->select(['Users.id', 'Users.first_name', 'Users.last_name']);
+                }],
             'conditions' => $conditions,
-            'order' => ['Operations.title' => 'asc'],
-            'limit' => 10,
+            'order' => ['Operations.id' => 'DESC'],
+            'limit' => $this->paginationLimit,
         ];
         $operations = $this->paginate($this->Operations);
-
         $this->set(compact('operations'));
+    }
+
+    /* Function: view()
+     * Description: function use for view particular get data by select id
+     * @param type: $id
+     * By @Ahsan Ahamad
+     * Date : 23rd Nov. 2017
+     */
+
+    public function view($operationId = null) {
+        $this->set(compact('operationId'));
+        $pageTitle = 'View Operation';
+        $pageHedding = 'View Operation';
+        $breadcrumb = array(
+            array('label' => 'Manage Operations', 'link' => 'operations/'),
+            array('label' => 'View'),
+        );
+        $this->set(compact('breadcrumb', 'pageTitle', 'pageHedding'));
+
+        $operationId = $this->Encryption->decode($operationId);
+        $this->loadModel('Permits');
+        $this->loadModel('AlertTypes');
+        $this->loadModel('AlertOperations');
+        $this->loadModel('Users');
+        $this->loadModel('Operations');
+        $this->loadModel('PermitOperations');
+
+
+//* get all permit for show in list ** 
+        $permitOperationList = $this->PermitOperations->getOperationPermit($operationId);
+//*** get all permit for show in list ** 
+        $permitsList = $this->Permits->getPermitList($permitOperationList);
+//* get operatio/ for show in list **  
+
+        $operation = $this->Operations->find()->contain(['PermitOperations', 'PermitOperations.Permits', 'AlertOperations', 'AlertOperations.Alerts'])->where(['Operations.id =' => $operationId])->first();
+
+
+//** get all alert type show in list ***  
+        $alertTypesList = $this->AlertTypes->getAlertType();
+
+//** get all staff type show in list ***   
+//        $companiesLists = $this->Users->getCompanyList();
+//        $staffLists = $this->Users->getStaffList($this->Auth->user('id'), 4);
+
+        $this->set(compact('alertTypesList', 'permitsList', 'operation'));
+
+        $this->loadModel('AlertOperations');
+        $alertOperations = $this->AlertOperations->getDataByOperationId($operationId);
+        $this->set(compact('alertOperations'));
+
+        $this->loadModel('AlertTypes');
+        $alertTypeList = $this->AlertTypes->getAlertType();
+        $this->set(compact('alertTypeList'));
+
+        $this->loadModel('Users');
+        $subAdminList = $this->Users->getSullivanStaffList();
+        $this->set(compact('subAdminList'));
+
+        $companyList = $this->Users->getCompanyList();
+        $this->set(compact('companyList'));
+
+        $this->loadModel('Operations');
+        $operationList = $this->Operations->getList();
+        $this->set(compact('operationList'));
+        $redirectHere = '/admin/operations/view/' . $this->Encryption->encode($operationId);
+        $this->set(compact('redirectHere'));
     }
 
     /*
@@ -64,14 +133,15 @@ class OperationsController extends AppController {
      */
 
     public function add() {
-        $pageTitle = 'Operation | Add';
+        $pageTitle = 'Add Operation';
         $pageHedding = 'Add Operation';
         $breadcrumb = array(
-            array('label' => 'Operation', 'link' => 'industries/'),
-            array('label' => 'Add Operation'));
+            array('label' => 'Manage Operations', 'link' => 'operations/'),
+            array('label' => 'Add'));
         $this->set(compact('breadcrumb', 'pageTitle', 'pageHedding'));
         $this->loadModel('Operations');
         if ($this->request->is('post')) {
+
             $this->request->data['name'] = ucfirst($this->request->data['name']);
             $this->request->data['description'] = ucfirst($this->request->data['description']);
             $this->request->data['slug'] = strtolower(
@@ -84,6 +154,18 @@ class OperationsController extends AppController {
             $this->Operations->patchEntity($industries, $this->request->data, ['validate' => 'Add']);
             if (!$industries->errors()) {
                 if ($success = $this->Operations->save($industries)) {
+                    $this->_updatedBy('Operations', $success->id);
+                    /* === Added by vipin for  add log=== */
+                    $message = 'Operation:' . $this->request->data('name') . ' Added by ' . $this->loggedusername;
+                    $saveActivityLog = [];
+                    $saveActivityLog['table_id'] = $success->id;
+                    $saveActivityLog['table_name'] = 'operations';
+                    $saveActivityLog['module_name'] = 'Operation';
+                    $saveActivityLog['url'] = $this->referer();
+                    $saveActivityLog['message'] = $message;
+                    $saveActivityLog['activity'] = 'Add';
+                    $this->Custom->saveActivityLog($saveActivityLog);
+                    /* === Added by vipin for  add log=== */
                     $this->Flash->success(__('Operation has been saved successfully.'));
                     return $this->redirect(['controller' => 'operations', 'action' => 'index', 'prefix' => 'admin']);
                 } else {
@@ -96,23 +178,129 @@ class OperationsController extends AppController {
         /** get all category / agencies list * */
         $this->loadModel('Categories');
         /* get all permit list */
-        $this->loadModel('Forms');
-        $permits = $this->Forms->find('list');
-        $permits->hydrate(false)->where(['Forms.is_deleted' => 0, 'Forms.is_active' => 1]);
-        $permitsList = $permits->toArray();
-        $this->set(compact('permitsList'));
+
+
 
         $this->loadModel('AlertTypes');
-        $alertTypes = $this->AlertTypes->find('list');
-        $alertTypes->hydrate(false)->where(['AlertTypes.is_deleted' => 0, 'AlertTypes.is_active' => 1, 'AlertTypes.id !=' => 2]);
-        $alertTypesList = $alertTypes->toArray();
+        $alertTypesList = $this->AlertTypes->getAlertType();
+
         $this->loadModel('Users');
         $companiesLists = $this->Users->getCompanyList();
         $staffLists = $this->Users->getStaffList($this->Auth->user('id'), 4);
-
         $this->set(compact('alertTypesList', 'companiesLists', 'staffLists'));
 
         $this->set('_serialize', ['permitsList']);
+
+        $this->loadModel('AlertTypes');
+        $alertTypeList = $this->AlertTypes->getAlertType();
+        $this->set(compact('alertTypeList'));
+
+        $this->loadModel('Users');
+        $subAdminList = $this->Users->getSullivanStaffList();
+        $this->set(compact('subAdminList'));
+
+        $companyList = $this->Users->getCompanyList();
+        $this->set(compact('companyList'));
+
+        $this->loadModel('Operations');
+        $operationList = $this->Operations->getList();
+        $this->set(compact('operationList'));
+    }
+
+    /*
+     * Function: edit()
+     * Description: use for edit operation records
+     * @param type: $id 
+     * By @Ahsan Ahamad
+     * Date : 12th Dec. 2017
+     */
+
+    public function edit($operationId = null) {
+        $this->set(compact('operationId'));
+        $pageTitle = 'Edit Operation';
+        $pageHedding = 'Edit Operation';
+        $breadcrumb = array(
+            array('label' => 'Manage Operations', 'link' => 'operations/'),
+            array('label' => 'Edit'));
+        $this->set(compact('breadcrumb', 'pageTitle', 'pageHedding'));
+        $this->loadModel('Operations');
+        $this->loadModel('AgenyOperation');
+        $operationId = $this->Encryption->decode($operationId);
+        if ($this->request->is('post')) {
+            $this->request->data['id'] = $operationId;
+            $this->request->data['name'] = ucfirst($this->request->data['name']);
+            $this->request->data['description'] = ucfirst($this->request->data['description']);
+            $operations = $this->Operations->get($operationId);
+            $this->Operations->patchEntity($operations, $this->request->data, ['validate' => 'Add']);
+            if (!$operations->errors()) {
+                if ($success = $this->Operations->save($operations)) {
+                    $this->_updatedBy('Operations', $this->request->data['id']);
+                    /* === Added by vipin for  add log=== */
+                    $message = 'Operation:' . $this->request->data('name') . ' updated by ' . $this->loggedusername;
+                    $saveActivityLog = [];
+                    $saveActivityLog['table_id'] = $this->request->data['id'];
+                    $saveActivityLog['table_name'] = 'operations';
+                    $saveActivityLog['module_name'] = 'Operation';
+                    $saveActivityLog['url'] = $this->referer();
+                    $saveActivityLog['message'] = $message;
+                    $saveActivityLog['activity'] = 'Edit';
+                    $this->Custom->saveActivityLog($saveActivityLog);
+                    /* === Added by vipin for  add log=== */
+
+                    $this->Flash->success(__('Operation has been update successfully.'));
+                    return $this->redirect(['controller' => 'operations', 'action' => 'index', 'prefix' => 'admin']);
+                } else {
+                    $this->Flash->error(__('Operation could not be saved'));
+                }
+            } else {
+                $this->Flash->error(__($this->Custom->multipleFlash($industries->errors())));
+            }
+        }
+        $this->loadModel('Permits');
+        $this->loadModel('AlertTypes');
+        $this->loadModel('AlertOperations');
+        $this->loadModel('PermitOperations');
+        $this->loadModel('Users');
+
+        $this->loadModel('PermitOperations');
+
+        $permitOperationList = $this->PermitOperations->getOperationPermit($operationId);
+//*** get all permit for show in list ** 
+        $permitsList = $this->Permits->getPermitList($permitOperationList);
+// get operation/industry for show in list 
+        $operation = $this->Operations->find()->contain(['PermitOperations', 'PermitOperations.Permits', 'AlertOperations'])->where(['Operations.id =' => $operationId])->first();
+
+
+//** get all alert type show in list **
+        $alertTypesList = $this->AlertTypes->getAlertType();
+
+//** get all staff type show in list ** 
+//        $companiesLists = $this->Users->getCompanyList();
+//        $staffLists = $this->Users->getStaffList($this->Auth->user('id'), 4);
+
+        $this->set(compact('alertTypesList', 'operation', 'permitsList'));
+
+
+        $this->loadModel('AlertOperations');
+        $alertOperations = $this->AlertOperations->getDataByOperationId($operationId);
+        $this->set(compact('alertOperations'));
+
+        $this->loadModel('AlertTypes');
+        $alertTypeList = $this->AlertTypes->getAlertType();
+        $this->set(compact('alertTypeList'));
+
+        $this->loadModel('Users');
+        $subAdminList = $this->Users->getSullivanStaffList();
+        $this->set(compact('subAdminList'));
+
+        $companyList = $this->Users->getCompanyList();
+        $this->set(compact('companyList'));
+
+        $this->loadModel('Operations');
+        $operationList = $this->Operations->getList();
+        $this->set(compact('operationList'));
+        $redirectHere = '/admin/operations/edit/' . $this->Encryption->encode($operationId);
+        $this->set(compact('redirectHere'));
     }
 
     /*
@@ -125,7 +313,6 @@ class OperationsController extends AppController {
 
     public function checkOperationUniqueName($operationName = null, $operationId = null) {
         $this->autorander = FALSE;
-
         if (isset($this->request->data['name'])) {
             $operationName = $this->request->data['name'];
         }
@@ -133,10 +320,64 @@ class OperationsController extends AppController {
             $operationId = $this->request->data['id'];
         }
         $nameStatus = $this->Operations->checkOperationUniqueName($operationName, $operationId);
-
-
         echo json_encode($nameStatus);
 
+        exit;
+    }
+
+    /**
+     * 
+     */
+    public function saveRelatedAlert($operationId) {
+        $this->autorander = FALSE;
+        $response['flag'] = false;
+        $response['msg'] = '';
+        if ($this->request->is('post')) {
+            $this->loadModel('Alerts');
+            $this->request->data['OperationAlert']['id'] = $this->request->data['OperationAlert']['alert_id'];
+            $this->request->data['OperationAlert']['alert_type_id'] = 4;
+            $this->request->data['OperationAlert']['operation_id'][] = $operationId;
+            $response = $this->Alerts->saveAdminOperationData($this->request->data['OperationAlert'], $operationId);
+            if (!$response['flag']) {
+                $responce['msg'] = $this->Custom->multipleFlash($alerts->errors());
+            } else {
+                $this->_updatedBy('Operations', $operationId);
+                /* === Added by vipin for  add log=== */
+                if (!empty($this->request->data['OperationAlert']['alert_id'])) {
+                    $message = 'Operation Alert updated by ' . $this->loggedusername;
+                    $activity = 'Edit';
+                } else {
+                    $message = 'Operation Alert added by ' . $this->loggedusername;
+                    $activity = 'Add';
+                }
+                $saveActivityLog = [];
+                $saveActivityLog['table_id'] = $response['id'];
+                $saveActivityLog['table_name'] = 'alerts';
+                $saveActivityLog['module_name'] = 'Operation Alert';
+                $saveActivityLog['url'] = $this->referer();
+                $saveActivityLog['message'] = $message;
+                $saveActivityLog['activity'] = 'Edit';
+                $this->Custom->saveActivityLog($saveActivityLog);
+                /* === Added by vipin for  add log=== */
+            }
+        } else {
+            $response['msg'] = 'Invalid request!';
+        }
+        echo json_encode($response);
+        exit;
+    }
+
+    /**
+     * 
+     * @param type $agencyId
+     */
+    public function getRelatedAlert($operationId) {
+        $this->autoRender = false;
+        $this->loadModel('AlertOperations');
+        $alertOperations = $this->AlertOperations->getDataByOperationId($operationId);
+        $redirectHere = $this->Custom->getRedirectPath($this->referer('/', true), $this->referer(), $this->Encryption->encode($operationId));
+        $this->set(compact('alertOperations', 'redirectHere'));
+        echo $this->render('/Element/backend/operation/alert_list');
         exit;
     }
 
@@ -149,15 +390,13 @@ class OperationsController extends AppController {
 
     public function getOperationPermit() {
         $this->autoRender = false;
-        $this->loadModel('PermitOperations');
-        $permits = $this->PermitOperations->find('list');
-        $permits->hydrate(false)->where(['PermitOperations.operation_id' => $this->request->data['operationId']]);
-        $permitsList = $permits->toArray();
-        if ($permitsList) {
-            $responce['flag'] = true;
-            $responce['formId'] = $permitsList;
+        $this->loadModel('Permits');
+        $unAssignPermitList = $this->Permits->getUnAssignedPermitListByOpertionId($this->request->data['operationId']);
+        $listHtml = '<option value="">-- Select Permit -- </option>';
+        foreach ($unAssignPermitList as $key => $value) {
+            $listHtml .= '<option value="' . $key . '">' . htmlentities($value) . '</option>';
         }
-        echo json_encode($responce);
+        echo $listHtml;
         exit;
     }
 
@@ -174,23 +413,45 @@ class OperationsController extends AppController {
         $responce['msg'] = '';
         if ($this->request->is('post')) {
             $this->loadModel('PermitOperations');
+
             foreach ($this->request->data['permit_id'] as $formId) {
-                $permit['permit_id'] = $formId;
-                $permit['added_by'] = $this->Auth->user('id');
-                $permit['operation_id'] = $this->request->data['operation_id'];
+                $permitExit = $this->PermitOperations->find()->where(['PermitOperations.permit_id' => $formId, 'PermitOperations.operation_id' => $this->request->data['operation_id'], 'PermitOperations.is_active' => 1, 'PermitOperations.is_deleted' => 0])->first();
 
-                $permitOperation = $this->PermitOperations->newEntity($permit);
-                $this->PermitOperations->patchEntity($permitOperation, $permit);
+                if (!$permitExit) {
+                    $permit['permit_id'] = $formId;
+                    $permit['added_by'] = $this->Auth->user('id');
+                    $permit['operation_id'] = $this->request->data['operation_id'];
 
-                $contactSuccess = $this->PermitOperations->save($permitOperation);
-                if ($contactSuccess) {
+                    $permitOperation = $this->PermitOperations->newEntity($permit);
+                    $this->PermitOperations->patchEntity($permitOperation, $permit);
 
-                    $responce['flag'] = true;
-                    $responce['operation_id'] = $this->request->data['operation_id'];
-                    $responce['msg'] = 'Permit has been added successfully';
+                    $contactSuccess = $this->PermitOperations->save($permitOperation);
+                    if ($contactSuccess) {
+                        /* === Added by vipin for  add log=== */
+                        $message = 'Operation Permit added by ' . $this->loggedusername;
+                        $saveActivityLog = [];
+                        $saveActivityLog['table_id'] = $contactSuccess->id;
+                        $saveActivityLog['table_name'] = 'permit_operations';
+                        $saveActivityLog['module_name'] = 'Operation Permit';
+                        $saveActivityLog['url'] = $this->referer();
+                        $saveActivityLog['message'] = $message;
+                        $saveActivityLog['activity'] = 'Add';
+                        $this->Custom->saveActivityLog($saveActivityLog);
+                        /* === Added by vipin for  add log=== */
+                        $responce['flag'] = true;
+                        $responce['operation_id'] = $this->request->data['operation_id'];
+                        $responce['msg'] = 'Permit has been added successfully';
+                    } else {
+                        $responce['msg'] = 'Permit could not be added successfully';
+                        $responce['flag'] = false;
+                    }
                 } else {
-                    $responce['msg'] = 'Permit could not be added successfully';
+                    $responce['msg'] = 'Permit already exit.';
+                    $responce['flag'] = false;
                 }
+            }
+            if (!empty($this->request->data['operation_id'])) {
+                $this->_updatedBy('Operations', $this->request->data['operation_id']);
             }
         }
         echo json_encode($responce);
@@ -208,9 +469,9 @@ class OperationsController extends AppController {
     public function getReleatedOperationPermit($operationId = null) {
         $this->autoRender = false;
         $this->loadModel('PermitOperations');
-        $operation['permit'] = $this->PermitOperations->find()->contain(['Forms'])->where(['PermitOperations.operation_id' => $operationId, 'PermitOperations.is_active' => 1, 'PermitOperations.is_deleted' => 0])->all();
-
-        $this->set('operation', $operation);
+        $operation['permit_operations'] = $this->PermitOperations->find()->contain(['Permits'])->where(['PermitOperations.operation_id' => $operationId, 'PermitOperations.is_active' => 1, 'PermitOperations.is_deleted' => 0])->all();
+        $redirectHere = $this->Custom->getRedirectPath($this->referer('/', true), $this->referer(), $this->Encryption->encode($operationId));
+        $this->set(compact('operation', 'redirectHere'));
         echo $this->render('/Element/backend/operation/permit_list');
         exit;
     }
@@ -226,8 +487,8 @@ class OperationsController extends AppController {
         $this->autoRender = false;
         //       $this->loadModel('Operations');
         if ($this->request->is('ajax')) {
-            $operation['name'] = $this->request->data['name'];
-            $operation['description'] = $this->request->data['description'];
+            $operation['name'] = ucfirst($this->request->data['name']);
+            $operation['description'] = ucfirst($this->request->data['description']);
             $operation['created'] = date('Y-m-d');
             $operation['added_by'] = $this->Auth->user('id');
             $operation['slug'] = strtolower(
@@ -239,6 +500,7 @@ class OperationsController extends AppController {
             $this->Operations->patchEntity($operations, $operation, ['validate' => 'Add']);
             if (!$operations->errors()) {
                 if ($success = $this->Operations->save($operations)) {
+                    $this->_updatedBy('Operations', $success->id);
                     $responce['flag'] = true;
                     $responce['operation_id'] = $success->id;
                     $responce['msg'] = 'Operation has been saved successfully.';
@@ -273,99 +535,11 @@ class OperationsController extends AppController {
             $this->loadModel('Users');
             $this->loadModel('Alerts');
 
-            $this->request->data['title'] = ucfirst($this->request->data['title']);
-            $this->request->data['date'] = date('Y-m-d', strtotime($this->request->data['date']));
+            $this->request->data['flag'] = 4;
+            $this->request->data['is_admin'] = 1;
             $this->request->data['user_id'] = $this->userId;
 
-            if (!empty($this->request->data['alert_id'])) {
-                $id = $this->request->data['alert_id'];
-                $alerts = $this->Alerts->get($id);
-                $responce['msg'] = 'Alerts has been updated successfully.';
-            } else {
-                $alerts = $this->Alerts->newEntity($this->request->data);
-                $responce['msg'] = 'Alerts has been added successfully.';
-            }
-            $this->Alerts->patchEntity($alerts, $this->request->data, ['validate' => 'Add']);
-            if (!$alerts->errors()) {
-                $success = $this->Alerts->save($alerts);
-
-                if ($success) {
-                    $alertOperation['alert_id'] = $success->id;
-                    $alertOperation['operation_id'] = $this->request->data['operation_id'];
-                    $alertOperation['user_id'] = $this->userId;
-                    $alertOperation['added_by'] = $this->Auth->user('id');
-
-                    if (!empty($this->request->data['operation_alert_id'])) {
-                        $alerts = $this->AlertOperations->get($this->request->data['operation_alert_id']);
-                    } else {
-                        $alerts = $this->AlertOperations->newEntity($alertOperation);
-                    }
-                    $this->AlertOperations->patchEntity($alerts, $alertOperation);
-                    $successAlertOperation = $this->AlertOperations->save($alerts);
-
-                    /** code for save alert company * */
-                    if (!empty($this->request->data['company_id']) && $this->request->data['alert_type_id'] == 3) {
-                        $conditionSample = array('AlertCompanies.alert_id' => $this->request->data['alert_id']);
-                        $this->AlertCompanies->deleteAll($conditionSample, false);
-
-
-                        foreach ($this->request->data['company_id'] as $key => $value) {
-                            $company = $this->Users->find()->contain(['Employees'])->select(['Users.email', 'Users.id'])->where(['Users.id' => $value])->first();
-                            $emails[] = $company->email;
-                            foreach ($company->employees as $employee) {
-                                $emails[] = $employee->email;
-                            }
-                            $companydata['company_id'] = $value;
-                            $companydata['created'] = date('Y-m-d');
-                            $companydata['alert_id'] = $success->id;
-                            $companydata['alert_type_id'] = $this->request->data['alert_type_id'];
-                            $companies = $this->AlertCompanies->newEntity();
-                            $this->AlertCompanies->patchEntity($companies, $companydata);
-                            $successAlertCompany = $this->AlertCompanies->save($companies);
-                        }
-                        if ($success) {
-                            /** code for send email to multiple users and companies * */
-                            $template = 'new_alert';
-                            $subject = "New Alerts";
-                            $this->Custom->sendMultipleEmail($emails, $template, $subject);
-                        }
-                    }
-                    /** code for save alert Staff * */
-                    if (!empty($this->request->data['staff_id']) && $this->request->data['alert_type_id'] == 2) {
-                        $conditionSample = array('AlertStaffs.alert_id' => $this->request->data['alert_id']);
-                        $this->AlertStaffs->deleteAll($conditionSample, false);
-
-                        foreach ($this->request->data['staff_id'] as $key => $value) {
-                            $staff['user_id'] = $value;
-                            $staff['created'] = date('Y-m-d');
-                            $staff['alert_id'] = $success->id;
-                            $staff['alert_type_id'] = $this->request->data['alert_type_id'];
-                            $staffs = $this->AlertStaffs->newEntity();
-                            $this->AlertStaffs->patchEntity($staffs, $staff);
-                            $successAlertStaff = $this->AlertStaffs->save($staffs);
-                        }
-                        if ($successAlert) {
-                            $staffs = $this->Users->find('list', ['valueField' => 'email']);
-                            $staffs->hydrate(false)->select(['Users.email'])->where(['Users.id in' => $this->request->data['staff_id'], 'Users.is_deleted' => 0, 'Users.is_active' => 1]);
-                            $emails = $staffs->toArray();
-                            /** code for send email to multiple users and companies * */
-                            $template = 'new_alert';
-                            $subject = "New Alerts";
-                            $this->Custom->sendMultipleEmail($emails, $template, $subject);
-                        }
-                    }
-
-                    $responce['flag'] = true;
-                    $responce['alert_id'] = $success->id;
-                    $responce['operation_id'] = $this->request->data['operation_id'];
-                } else {
-                    $responce['flag'] = false;
-                    $responce['msg'] = 'Alerts could not be added.';
-                }
-            } else {
-                $responce['flag'] = false;
-                $responce['msg'] = $this->Custom->multipleFlash($alerts->errors());
-            }
+            $responce = $this->Alerts->addAlert($this->request->data);
         }
         echo json_encode($responce);
         exit;
@@ -382,133 +556,35 @@ class OperationsController extends AppController {
     public function getReleatedOperationAlert($operationId = null) {
         $this->autoRender = false;
         $this->loadModel('AlertOperations');
-        $operation['alert'] = $this->AlertOperations->find()->contain(['Alerts', 'Alerts.AlertCompanies', 'Alerts.AlertStaffs'])->where(['AlertOperations.operation_id' => $operationId, 'AlertOperations.is_deleted' => 0, 'AlertOperations.is_active' => 1])->all();
-
-        $this->set('operation', $operation);
+        $operation['alert_operations'] = $this->AlertOperations->find()->contain(['Alerts', 'Alerts.AlertCompanies', 'Alerts.AlertStaffs'])->where(['AlertOperations.operation_id' => $operationId, 'AlertOperations.is_deleted' => 0, 'AlertOperations.is_active' => 1])->all();
+        $redirectHere = $this->Custom->getRedirectPath($this->referer('/', true), $this->referer(), $this->Encryption->encode($operationId));
+        $this->set(compact('operation', 'redirectHere'));
         echo $this->render('/Element/backend/operation/alert_list');
         exit;
     }
 
     /*
-     * Function: edit()
-     * Description: use for edit operation records
-     * @param type: $id 
+     * Function: checkOperationPermit()
+     * Description: use for check Unique permit name of the operation
      * By @Ahsan Ahamad
-     * Date : 12th Dec. 2017
+     * Date : 18th Jan. 2018
      */
 
-    public function edit($id = null) {
-        $pageTitle = 'Operation | Edit';
-        $pageHedding = 'Edit Operation';
-        $breadcrumb = array(
-            array('label' => 'Operation', 'link' => 'industries/'),
-            array('label' => 'Edit Operation'));
-        $this->set(compact('breadcrumb', 'pageTitle', 'pageHedding'));
-        $this->loadModel('Operations');
-        $this->loadModel('AgenyOperation');
+    public function checkOperationPermit() {
+        $this->autorander = FALSE;
 
-        $id = $this->Encryption->decode($id);
         if ($this->request->is('post')) {
-            $id = $this->request->data['id'];
-            $this->request->data['name'] = ucfirst($this->request->data['name']);
-            $this->request->data['description'] = ucfirst($this->request->data['description']);
-            $operations = $this->Operations->newEntity();
-            $this->Operations->patchEntity($operations, $this->request->data, ['validate' => 'Add']);
-            if (!$operations->errors()) {
-                if ($success = $this->Operations->save($operations)) {
-
-                    $this->Flash->success(__('Operation has been update successfully.'));
-                    return $this->redirect(['controller' => 'operations', 'action' => 'index', 'prefix' => 'admin']);
-                } else {
-                    $this->Flash->error(__('Operation could not be saved'));
-                }
+            $this->loadModel('PermitOperations');
+            $operation = $this->PermitOperations->find()->where(['PermitOperations.permit_id in' => $this->request->data['prmitId'], 'PermitOperations.operation_id' => $this->request->data['operationId'], 'PermitOperations.is_active' => 1, 'PermitOperations.is_deleted' => 0])->first();
+            if ($operation) {
+                $responce['flag'] = true;
+                $responce['msg'] = 'Permit already exist for the operation.';
             } else {
-                $this->Flash->error(__($this->Custom->multipleFlash($industries->errors())));
+                $responce['flag'] = false;
             }
+            echo json_encode($responce);
+            exit;
         }
-        $this->loadModel('Forms');
-        $this->loadModel('AlertTypes');
-        $this->loadModel('AlertOperations');
-        $this->loadModel('PermitOperations');
-        $this->loadModel('Users');
-
-//*** get all permit for show in list ** 
-        $permits = $this->Forms->find('list');
-        $permits->hydrate(false)->where(['Forms.is_deleted' => 0, 'Forms.is_active' => 1]);
-        $permitsList = $permits->toArray();
-
-// get operation/industry for show in list 
-
-        $operation = $this->Operations->find()->select(['name', 'description', "id"])->where(['Operations.id =' => $id])->first();
-
-//** get all alert related to operation for show in list **
-
-        $operation['alert'] = $this->AlertOperations->find()->contain(['Alerts', 'Alerts.AlertCompanies', 'Alerts.AlertStaffs'])->where(['AlertOperations.operation_id' => $id, 'AlertOperations.is_deleted' => 0, 'AlertOperations.is_active' => 1])->all();
-//prx($operation['alert']);
-        $operation['permit'] = $this->PermitOperations->find()->contain(['Forms'])->where(['PermitOperations.operation_id' => $id, 'PermitOperations.is_active' => 1, 'PermitOperations.is_deleted' => 0])->all();
-
-//** get all alert type show in list **
-
-        $alertTypes = $this->AlertTypes->find('list');
-        $alertTypes->hydrate(false)->where(['AlertTypes.is_deleted' => 0, 'AlertTypes.is_active' => 1, 'AlertTypes.id !=' => 4]);
-        $alertTypesList = $alertTypes->toArray();
-
-//** get all staff type show in list ** 
-        $companiesLists = $this->Users->getCompanyList();
-        $staffLists = $this->Users->getStaffList($this->Auth->user('id'), 4);
-
-        $this->set(compact('alertTypesList', 'companiesLists', 'staffLists', 'permitsList', 'operation'));
-    }
-
-    /* Function: view()
-     * Description: function use for view particular get data by select id
-     * @param type: $id
-     * By @Ahsan Ahamad
-     * Date : 23rd Nov. 2017
-     */
-
-    public function view($id = null) {
-        $pageTitle = 'Operation | View';
-        $pageHedding = 'Operation | View ';
-        $breadcrumb = array(
-            array('label' => 'Operation', 'link' => 'industries/'),
-            array('label' => 'View'),
-        );
-        $this->set(compact('breadcrumb', 'pageTitle', 'pageHedding'));
-
-        $id = $this->Encryption->decode($id);
-        $this->loadModel('Forms');
-        $this->loadModel('AlertTypes');
-        $this->loadModel('AlertOperations');
-        $this->loadModel('FormOperations');
-        $this->loadModel('Users');
-        $this->loadModel('Operations');
-
-//* get all permit for show in list ** 
-        $permits = $this->Forms->find('list');
-        $permits->hydrate(false)->where(['Forms.is_deleted' => 0, 'Forms.is_active' => 1]);
-        $permitsList = $permits->toArray();
-//* get operatio/ for show in list **  
-
-        $operation = $this->Operations->find()->select(['name', 'description', "id"])->where(['Operations.id =' => $id])->first();
-
-//*get all alert related to operation for show in list ** 
-
-        $operation['alert'] = $this->AlertOperations->find()->contain(['Alerts', 'Alerts.AlertCompanies', 'Alerts.AlertStaffs'])->where(['AlertOperations.operation_id' => $id, 'AlertOperations.is_deleted' => 0, 'AlertOperations.is_active' => 1])->all();
-
-        $operation['permit'] = $this->PermitOperations->find()->contain(['Forms'])->where(['PermitOperations.industry_id' => $id, 'PermitOperations.is_active' => 1, 'PermitOperations.is_deleted' => 0])->all();
-
-//** get all alert type show in list ***  
-
-        $alertTypes = $this->AlertTypes->find('list');
-        $alertTypes->hydrate(false)->where(['AlertTypes.is_deleted' => 0, 'AlertTypes.is_active' => 1]);
-        $alertTypesList = $alertTypes->toArray();
-
-//** get all staff type show in list ***   
-        $companiesLists = $this->Users->getCompanyList();
-        $staffLists = $this->Users->getStaffList($this->Auth->user('id'), 4);
-
-        $this->set(compact('alertTypesList', 'companiesLists', 'staffLists', 'permitsList', 'operation'));
     }
 
 }

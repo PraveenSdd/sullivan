@@ -17,7 +17,7 @@
                                     <td style="font-family:'Open Sans', sans-serif;color:#64646e;font-size:14px;text-align:left;">    Please Click on this button for verify email and active account.</td>
                                 </tr>
                                 <tr>
-                                    <td style="font-family:'Open Sans', sans-serif;color:#64646e;font-size:14px;text-align:left;">    Your Password : <?= $data['password']?>.</td>
+                                    <td style="font-family:'Open Sans', sans-serif;color:#64646e;font-size:14px;text-align:left;">    Your Password : <?php if(!empty($data['password'])){ $data['password'];}?></td>
                                 </tr>
                                 <tr>
                                     <td><p style="border-top:1px solid #cccccc;margin-bottom:0;">&nbsp;</p></td>

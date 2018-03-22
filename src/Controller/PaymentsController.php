@@ -18,7 +18,8 @@ class PaymentsController extends AppController {
     public function initialize() {
         parent::initialize();
         $this->loadComponent('Paginator');
-        $this->loadComponent('Payment');
+        $this->loadComponent('Paypal');
+        $this->loadComponent('Stripe');
         $this->loadComponent('Flash'); // Include the FlashComponent
 
         $this->Auth->allow(['index', 'success', 'wellcome', 'paypalRecurringResponse']);
@@ -66,50 +67,59 @@ class PaymentsController extends AppController {
         $responseData['status'] = true;
         $responseData['msg'] = '';
         $userId = $this->Encryption->decode($userId);
-
         $this->Users = TableRegistry::get('Users');
         $userExists = $this->Users->exists(['id' => $userId, 'is_deleted' => 0]);
         $locationCount = 0;
+        $subscriptionDone = null;
         if ($userExists) {
-            $this->UserLocations = TableRegistry::get('UserLocations');
-            $locationCount = $this->UserLocations->getCountByUserId($userId);
-            if ($locationCount > 5) {
-                $amount = 1000;
-            } else if ($locationCount <= 5 && $locationCount > 3) {
-                $amount = 750;
-            } else {
-                $amount = 500;
-            }
-            if ($this->request->is('post')) {
-                //set_time_limit (180);
-                $companyInfo = $this->Users->getCompanyInfo($userId);
-                if (!empty($companyInfo)) {
-                    if (strtolower($companyInfo['location_info']->email) == strtolower($this->request->data['Company']['email'])) {
-                        $cardDetails['cardholder'] = $this->request->data['Payment']['card_holder'];
-                        $cardDetails['cardNumber'] = $this->request->data['Payment']['card_number'];
-                        $cardDetails['cvv'] = $this->request->data['Payment']['cvv'];
-                        $expiry = explode('/', $this->request->data['Payment']['expiry']);
-                        $cardDetails['expireMonth'] = $expiry[0];
-                        $cardDetails['expireYear'] = $expiry[1];
-                        $cardDetails['location'] = $locationCount;
-                        $cardDetails['amount'] = $amount;
-                        $responseData = $this->Payment->paypalRecurring($userId, $cardDetails);
-                        if ($responseData['status']) {
-                            $responseData['msg'] = 'Payment has been successfully.';
-                            $this->redirect(array('controller' => 'payments', 'action' => 'success', $userId));
+            $this->loadModel('Subscriptions');
+            $subscriptionDone = $this->Subscriptions->checkRegistrationByUserId($userId);
+            if (!$subscriptionDone) {                
+                $this->UserLocations = TableRegistry::get('UserLocations');
+                $locationCount = $this->UserLocations->getCountByUserId($userId);
+                if ($locationCount > 5) {
+                    $amount = 1000;
+                } else if ($locationCount <= 5 && $locationCount > 3) {
+                    $amount = 750;
+                } else {
+                    $amount = 500;
+                }
+
+                # Get Subscription-plan data
+                $this->loadModel('SubscriptionPlans');
+                $subscriptionPlans = $this->SubscriptionPlans->getAllPlans();
+                $this->set(compact('subscriptionPlans'));
+
+                if ($this->request->is('post')) {
+                    $companyInfo = $this->Users->getCompanyInfo($userId);
+                    if (!empty($companyInfo)) {
+                        if (strtolower($companyInfo['location_info']->email) == strtolower($this->request->data['Company']['email'])) {
+                            $cardDetails['cardholder'] = $this->request->data['Payment']['card_holder'];
+                            $cardDetails['cardNumber'] = $this->request->data['Payment']['card_number'];
+                            $cardDetails['cvv'] = $this->request->data['Payment']['cvv'];
+                            $expiry = explode('/', $this->request->data['Payment']['expiry']);
+                            $cardDetails['expireMonth'] = $expiry[0];
+                            $cardDetails['expireYear'] = $expiry[1];
+                            $cardDetails['location'] = $locationCount;
+                            $responseData = $this->Stripe->createSubscription($userId, $cardDetails, $this->request->data['SubscriptionPlan']['id']);
+                            //$responseData = $this->Paypal->createSubscription($userId, $cardDetails,$this->request->data['SubscriptionPlan']['id']);
+                            if ($responseData['status']) {
+                                $responseData['msg'] = 'Payment has been successfully.';
+                                $this->redirect(array('controller' => 'payments', 'action' => 'success', $userId));
+                            } else {
+                                $responseData['status'] = false;
+                                $responseData['msg'] = $responseData['msg'];
+                            }
                         } else {
-                            $responseData['status'] = false;
-                            $responseData['msg'] = $responseData['msg'];
+                            $locationCount = 0;
                         }
                     } else {
                         $locationCount = 0;
                     }
-                } else {
-                    $locationCount = 0;
                 }
             }
         }
-        $this->set(compact('userId', 'amount', 'userExists', 'locationCount', 'responseData'));
+        $this->set(compact('userId', 'amount', 'userExists', 'subscriptionDone','locationCount', 'responseData'));
     }
 
     /* Function:paypalRecurringResponse() 

@@ -2,18 +2,15 @@
 jQuery(document).on('ready', function () {
     $(".inp-phone").mask("999-999-9999");
     $(".inp-card-expiry").mask("99/9999");
-    $('#mult-drop1').multiselect({
-        numberDisplayed: 5
-    });
+    var select2Flag = $('.chk-disable-select2').data('flag');
+    if (select2Flag == 1) {
+        $('#mult-drop1').multiselect({
+            numberDisplayed: 5
+        });
+    }
 });
 
 $(function () {
-
-    $(".inp-phone").mask("999-999-9999");
-    $('#mult-drop1').multiselect({
-        numberDisplayed: 5
-    });
-
 // validate signup form on keyup and submit
     $("#loginform").validate({
         debug: false,
@@ -109,7 +106,7 @@ $(function () {
     });
 
 // validation for staff and admin company profile or admin   
-    $("#add_user").validate({
+    $("#frmStaff").validate({
         debug: false,
         errorClass: "authError",
         onkeyup: false,
@@ -119,11 +116,7 @@ $(function () {
                 maxlength: 30,
                 letterspace: true,
             },
-            "last_name": {
-                required: true,
-                maxlength: 30,
-                letterspace: true,
-            },
+
             "email": {
                 required: true,
                 email: true,
@@ -157,6 +150,30 @@ $(function () {
                 minlength: 8,
                 equalTo: "#password"
             },
+            "position": {
+                required: true,
+                maxlength: 40,
+            },
+            "permission_id": {
+                required: true,
+
+            },
+            "Address[address1]": {
+                required: true,
+                maxlength: 80,
+            },
+            "Address[city]": {
+                required: true,
+                maxlength: 40,
+            },
+            "Address[state_id]": {
+                required: true,
+                maxlength: 40,
+            },
+            "Address[zipcode]": {
+                required: true,
+                maxlength: 10,
+            },
         },
         messages: {
             "first_name": {
@@ -164,11 +181,7 @@ $(function () {
                 lettersonly: 'Character only.',
                 maxlength: "Maximum characters are 30"
             },
-            "last_name": {
-                required: "Please enter last name",
-                lettersonly: 'Character only.',
-                maxlength: "Maximum characters are 30"
-            },
+
             "email": {required: "Please enter  email address",
                 required: "Please enter valid email address",
                 remote: "Email address is already exists"},
@@ -185,10 +198,59 @@ $(function () {
                 minlength: "Your password must be at least 8 characters long",
                 equalTo: "Please enter the same password as above"
             },
+            "position": {
+                required: "Please enter phone number",
+                maxlength: "Maximum characters are 15",
+            },
+            "permission_id": {
+                required: "Please enter permission",
+                maxlength: "Maximum characters are 15",
+            },
+            "Address[address1]": {
+                required: "Please enter address",
+                maxlength: "Maximum characters are 80",
+            },
+            "Address[city]": {
+                required: "Please enter city",
+                maxlength: "Maximum characters are 40",
+            },
+
+            "Address[state_id]": {
+                required: "Please select state",
+            },
+
+            "Address[zipcode]": {
+                required: "Please enter zipcode",
+                maxlength: "Maximum characters are 10",
+            },
 
         },
-        submitHandler: function (form) {
-            form.submit();
+    });
+    $(document).on('click', '.subStaff', function () {
+        if ($('#frmStaff').valid()) {
+            var path = window.location.href;
+            var confirmd_value = '';
+            if (path.indexOf('admin') >= 0) {
+                confirmd_value = 1;
+            } else {
+                confirmd_value = 4;
+            }
+            var sel_add_state = $(".sel-add-state option:selected").val();
+            if (sel_add_state == confirmd_value) {
+                ecoConfirm("Are you sure you want to allow all permission for this user?", function
+                        ecoAlert(findreturn) {
+                    if (findreturn == true) {
+                        $('.loader-outer-block').css('display', 'block');
+                        $('#frmStaff').submit();
+                    } else {
+                        return false;
+                    }
+                });
+            } else {
+                $('.loader-outer-block').css('display', 'block');
+                $('#frmStaff').submit();
+            }
+            return false;
         }
     });
 

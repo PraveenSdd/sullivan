@@ -35,22 +35,6 @@
                                               ?>
                             </div>
                         </div>
-
-                        <div class="form-group">
-                            <label for="CategoryName" class="col-sm-3 control-label">Upload Image</label>
-                            <div class="col-sm-9">
-
-                               <?php echo $this->Form->input('file', array(
-                                                    'type'=>'file',
-                                                    'label' => false,
-                                                    'class'=>''
-                                                 ));  
-                                              ?>
-                            </div>
-                        </div>
-
-
-
                     </div>
                      <?php echo $this->Form->hidden('id', array('value'=>$home['id']));  
                                               ?>

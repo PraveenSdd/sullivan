@@ -72,11 +72,11 @@ $(document).ready(function () {
 
 
     /************************** start   code for add agency Conatct person **********************/
-    $(".addConatctPerson").click(function () {
+    $(document).on("click", ".addConatctPerson", function () {
 
         $('.additional-address-block').html('');
-        $('.additional-address-block').append($('.additional-address-html').html());
-        resetAddressFields();
+//        $('.additional-address-block').append($('.additional-address-html').html());
+//        resetAddressFields();
         if ($('#categoryId').length == 1) {
             if ($('#categoryId').valid()) {
                 var formId = $('.inp-agency-name').attr('data-id');
@@ -87,28 +87,21 @@ $(document).ready(function () {
                     saveAgencyData();
                     openAgencyPersonModal($(this));
                 }
-
             }
         } else {
             openAgencyPersonModal($(this));
         }
     });
-    $(".viewConatctPerson").click(function () {
 
-        $('.additional-address-block').html('');
-        $('.additional-address-block').append($('.additional-address-html').html());
-        resetAddressFields();
-        openAgencyPersonModal($(this));
-
-    });
 
 //***************** add agency ajax code *****************************\\
 
     function saveAgencyData() {
+
         $.ajax({
             url: "/admin/categories/saveAgencyData",
             type: "POST",
-            data: {name: $('.inp-agency-name').val(), description: $('.inp-agency-description').val(), id: $('.inp-agency-nam').attr('data-id')},
+            data: $('#categoryId').serialize(),
             dataType: 'JSON',
             cache: false,
             async: false,
@@ -116,9 +109,9 @@ $(document).ready(function () {
             {
                 if (responce.flag) {
                     pNotifySuccess('Agency', responce.msg);
-                    $('.addicons').attr('data-categoryId', responce.category_id);
-                    $('.addCategoryId').val(responce.category_id);
-                    $('.inp-agency-name').attr('data-id', responce.category_id);
+                    $('.addicons').attr('data-categoryId', responce.agency_id);
+                    $('.addCategoryId').val(responce.agency_id);
+                    $('.inp-agency-name').attr('data-id', responce.agency_id);
                 } else {
                     pNotifyError('Agency', responce.msg);
 
@@ -130,18 +123,18 @@ $(document).ready(function () {
 //***************** open model of conatct person  *****************************\\
 
     function openAgencyPersonModal(element) {
-/* set value from permit add agency and add contact per*/ 
-
-        if($(element).data('flag')==1){
+        /* set value from permit add agency and add contact per*/
+         var categoryId = $('.inp-agency-name').attr('data-id');
+        if ($(element).data('flag') == 1) {
             if ($('#permitAddAgency').valid()) {
                 $('.permitId').val($(element).data('permitid'));
                 $('.addCategoryId').val($(element).data('categoryid'));
             }
-        }else{
+        } else {
             $('#categotyId').val([categoryId]).trigger('change');
 
         }
-        
+
         $(".inp-phone").mask("999-999-9999");
         $('.agencycontactId').val(' ');
         $('.conatctName').val(' ');
@@ -152,9 +145,9 @@ $(document).ready(function () {
         $('.agencyContactId').val(' ');
 
         $('#formagencyid').val(' ');
-       
+
         var title = $(element).data('title');
-        var categoryId = $(element).data('categoryid');
+       
         $('.modelTitle').html(title);
         $('.addCategoryId').val(categoryId);
 
@@ -169,11 +162,10 @@ $(document).ready(function () {
         onkeyup: false,
         rules: {
             "category_id[]": "required",
-           
+
         },
         messages: {
             "category_id[]": "Please select agency",
-            
 
         },
     });
@@ -198,7 +190,7 @@ $(document).ready(function () {
                     if (responce.flag) {
                         pNotifySuccess('Agency', responce.msg);
                         $('#contactPersonModel').modal('toggle');
-                        if(responce.permit_id){
+                        if (responce.permit_id) {
                             $.ajax({
                                 url: "/admin/forms/getAgencyContacts",
                                 type: "Post",
@@ -206,12 +198,12 @@ $(document).ready(function () {
                                 data: {categoryId: responce.category_id},
                                 success: function (response) {
                                     if (response) {
-                                         $('.contactPerson').html(response);
+                                        $('.contactPerson').html(response);
 
                                     }
                                 }
                             });
-                        }else{
+                        } else {
                             getReleatedAgencyContact(responce.category_id);
                         }
 
@@ -376,13 +368,12 @@ $(document).ready(function () {
     });
 
     $(document).on('click', '.additional-address-block .remove-address', function () {
-
-        if ($('.additional-address-block .remove-address').length > 1) {
-
+        if ($('.additional-address-block .additional-address').length > 0) {
             $(this).parents('.additional-address').remove();
         }
         resetAddressFields();
     });
+
     function resetAddressFields() {
         $(".inp-phone").mask("999-999-9999");
         var addressSerial = 1;
@@ -397,8 +388,7 @@ $(document).ready(function () {
             $(this).find('.inp-address_phone').attr('id', 'inp-address_phone-' + addressSerial);
             addressSerial++;
         });
-
-        if ($('.additional-address-block .remove-address').length > 1) {
+        if ($('.additional-address-block .remove-address').length > 0) {
             $('.additional-address-block .remove-address').removeClass('hide');
         } else {
             $('.additional-address-block .remove-address').addClass('hide');
@@ -412,8 +402,159 @@ $(document).ready(function () {
             displayLoder();
         }
     });
+
+
+    /* Agency-Permit - START */
+    $(document).on("click", ".btnAgencyPermitModel", function () {
+        if ($('#categoryId').length == 1) {
+            if ($('#categoryId').valid()) {
+                var formId = $('.inp-agency-name').attr('data-id');
+                if (formId > 0) {
+                    openAgencyPermitModal($(this));
+                } else {
+// code for saving data
+                    saveAgencyData();
+                    openAgencyPermitModal($(this));
+                }
+            }
+        } else {
+            openAgencyPermitModal($(this));
+        }
+    });
+
+
+    function openAgencyPermitModal(element) {
+        $('#agencyPermitModel .modelTitle').html($(element).data('title'));
+        var categoryId = $('.inp-agency-name').attr('data-id');
+        $('#selAgencyPermit').val('');
+        $('#selAgencyPermitContact').val('');
+        $('#inpPermitAgencyId').val('');
+        var permitId = $(element).data('permitid');
+        var contactId = $(element).data('conatctid');
+        var permitAgencyId = $(element).data('permitagencyid');
+        $('#inpPermitAgencyId').val(permitAgencyId);
+        $.ajax({
+            url: "/admin/forms/getUnassignedPermitList/",
+            type: "Post",
+            dataType: 'html',
+            async: false,
+            data: {assindPermitId: permitId},
+            success: function (response) {
+                if (response) {
+                    $('#selAgencyPermit').html(response);
+                    $('.sel-agency-permit').val([permitId]).trigger('change');
+                }
+            }
+        });
+
+        $.ajax({
+            url: "/admin/categories/getContactPersonByAgencyId/" + categoryId,
+            type: "Post",
+            dataType: 'html',
+            async: false,
+            data: {categoryId, categoryId},
+            success: function (response) {
+                if (response) {
+                    $('#selAgencyPermitContact').html(response);
+                    contactId = String(contactId);
+                    if (contactId.indexOf(',') >= 0 ) {
+                        $('#selAgencyPermitContact').val(contactId.split(',')).trigger('change');
+                    } else {
+                        $('#selAgencyPermitContact').val([contactId]).trigger('change');
+                    }
+                }
+            }
+        });
+        $('#agencyPermitModel').modal('toggle');
+    }
+
+
+    // Save Agency-Permit Data
+    $("#frmAgencyPermit").on('submit', function (e) {
+        e.preventDefault();
+        if ($('#frmAgencyPermit').valid()) {
+            var categoryId = $('.inp-agency-name').attr('data-id');
+            $.ajax({
+                url: "/admin/forms/saveAgencyPermit",
+                type: "POST",
+                data: {permit_id: $('#selAgencyPermit').val(), agency_id: categoryId, contact_person: $('#selAgencyPermitContact').val(), permit_agency_id: $('#inpPermitAgencyId').val()},
+                dataType: 'JSON',
+                cache: false,
+                success: function (responce)
+                {
+                    if (responce.flag) {
+                        pNotifySuccess('Permit', responce.msg);
+                        getReleatedPermitAgency(categoryId);
+                        $('#agencyPermitModel').modal('toggle');
+                    } else {
+                        pNotifyError('Permit', responce.msg);
+                    }
+
+                }
+            });
+        }
+    });
+
+    /* check agency validation */
+    $("#frmAgencyPermit").validate({
+        debug: false,
+        errorClass: "authError",
+        onkeyup: false,
+        rules: {
+            "permit_id": "required",
+
+        },
+        messages: {
+            "permit_id": "Please select Permit",
+
+        },
+    });
+
+    //***************** get all agency contact person list *****************************\\
+
+    function getReleatedPermitAgency(category_id) {
+        $.ajax({
+            url: "/admin/categories/getPermitAgency/" + category_id,
+            type: "POST",
+            data: {formId: 2},
+            contentType: false,
+            dataType: 'html',
+            cache: false,
+            processData: false,
+            success: function (responce)
+            {
+                $('.agency_permit-block').html(responce);
+            }
+        });
+    }
+
+
+    /* Agency-Permit - START */
+
 });
 
+/* code for get agency contact persion details  */
+
+$(document).on('click', '.viewContact', function () {
+    var personId = $(this).data('id');
+    if (personId) {
+        $.ajax({
+            url: "/admin/categories/getContactPerson/" + personId,
+            type: "Post",
+            dataType: 'html',
+            data: {personId: personId},
+            success: function (response) {
+                if (response) {
+                    $('.contactPerson').html(response);
+                    $('#viewConatcPerson').modal('toggle');
+
+                }
+            }
+        });
+    } else {
+        $(".contactPerson").html();
+    }
+});
 
 
 

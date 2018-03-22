@@ -2,7 +2,7 @@
 <!DOCTYPE html>
 <html>
    <head>
-          <title>Admin <?php echo isset($pageTitle) ? ('| '.$pageTitle) : '';?></title>
+          <title>PermitAdmin <?php echo isset($pageTitle) ? ('| '.$pageTitle) : '';?></title>
   <?= $this->Html->css(['/vendor/plugin/bootstrap/dist/css/bootstrap.min','/vendor/plugin/font-awesome/css/font-awesome.min','/vendor/plugin/Ionicons/css/ionicons.min','/vendor/dist/css/AdminLTE.min','/vendor/dist/css/blue','/vendor/custom']); ?>
         
            <?= $this->Html->script(['/vendor/plugin/jquery/dist/jquery.min','/vendor/plugin/jquery-ui/jquery-ui.min','/vendor/plugin/bootstrap/dist/js/bootstrap.min','jquery.validate']);?>

@@ -2,16 +2,23 @@
 <div class="inner-page-bx  main-content clearfix">
     <div class="container">
         <div class="signup-bx-1 inner-container ">
-            <?php if(!$userExists) :
+            <?php if(!$userExists) {
                 echo $this->element('frontend/notFound/company');    
-            else :
+            } else if($subscriptionDone) {
+                echo $this->element('frontend/payment/subscription_done');    
+            } else {
              ?>    
+                <div  class="hdd-brdr"><h3>Subscription Plans</h3></div>
+                <div class="main-index main-index-no-bg clearfix">  
+                    <?php echo $this->element('frontend/subscription_plan'); ?>
+                </div>
+                
                 <div  class="hdd-brdr"><h3>Payment Details</h3></div>
                     <?php if(!$responseData['status']): ?>
                         <p class="font-size-18 color-red padding-left-15"><?php echo 'Error: '.$responseData['msg']; ?></p>
                     <?php endif; ?>
                 <div class="form-default tab-content clearfix">  
-                    <?php echo $this->Form->create('Payment', array('url' => array('controller' => 'payments', 'action' => 'index',$this->Encryption->encode($userId)), 'id' => 'frmPayment', 'autocomplete' => 'off', ' method' => 'post')); ?> 
+                    <?php echo $this->Form->create('Payment', array('url' => array('controller' => 'payments', 'action' => 'index',$this->Encryption->encode($userId)), 'id' => 'frmPayment', 'autocomplete' => 'off', ' method' => 'post', 'data-location'=>$locationCount)); ?> 
                         <div class="row pymnt-amnt-bx">
                             <div class="col-xs-6 col-sm-6">Amount: <strong> $<span class="chargable-amount"><?php echo $amount?></span></strong></div>
                             <div class="col-xs-6 col-sm-6 text-right">Location: <strong><span class="chargable-location"><?php echo $locationCount?></span></strong></div>
@@ -19,7 +26,8 @@
                         <div class="row">
                             <div class="col-xs-12 col-sm-12">
                                 <div class="pro-inpt-bx">
-                                    <label>Comapny Email</label>
+                                    <label>Company Email</label>
+                                    <?php echo $this->Form->hidden('SubscriptionPlan.id', array('class'=>'subscription-plan-id')); ?> 
                                     <?php
                                     echo $this->Form->input('Company.email', array(
                                         'label' => false,
@@ -98,7 +106,7 @@
 
                     <?php echo $this->Form->end(); ?>
                 </div>
-            <?php endif; ?>
+            <?php } ?>
         </div>
     </div>
 </div>

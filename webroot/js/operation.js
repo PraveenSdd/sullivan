@@ -39,7 +39,7 @@ $(document).ready(function () {
             "name": {
                 required: "Please enter operation type",
                 maxlength: "Maximum characters are 120.",
-                remote: "Operation is already exist."
+                  remote: "Operation is already exist."
             },
             "short_description": {
                 //  required: "Please enter notes",
@@ -106,7 +106,7 @@ $(document).ready(function () {
     function openOperationPermitModal(element) {
 
         var title = $(element).data('title');
-        var operationId = $(element).data('operationid');
+        var operationId = $('.inp-operation-name').attr('data-id');
         $.ajax({
             url: "/admin/operations/getOperationPermit",
             type: "POST",
@@ -187,14 +187,13 @@ $(document).ready(function () {
         errorClass: "authError",
         onkeyup: false,
         rules: {
-            "form_id[]": {
+            "permit_id[]": {
                 required: true,
-
             },
 
         },
         messages: {
-            "form_id[]": {
+            "permit_id[]": {
                 required: "Please select Permit",
             },
         },
@@ -212,35 +211,6 @@ $(document).ready(function () {
         $('.conatctPhone').val($(this).data('conatcphone'));
         $('.conatctAddress').val($(this).data('conatcaddress'));
         $('#contactPersonModel').modal('toggle');
-    });
-
-
-    //*** add Permit validation **\\
-    $("#operationId").validate({
-        debug: false,
-        errorClass: "authError",
-        onkeyup: false,
-        rules: {
-            "name": {
-                required: true,
-                maxlength: 120,
-            },
-            "description": {
-                required: true,
-                maxlength: 160,
-
-            },
-        },
-        messages: {
-            "name": {
-                required: "Please enter operation type",
-                maxlength: "Maximum characters are 120."
-            },
-            "short_description": {
-                required: "Please enter notes",
-                maxlength: "Maximum characters are 160."
-            },
-        },
     });
 
     /**  start code for add agency value from admin permit **/
@@ -286,12 +256,11 @@ $(document).ready(function () {
     function openOperationAlertModal(element) {
 
         $('#staffList').val(['']).trigger('change');
-        $('#companiesList').val(['']).trigger('change');
-        $('#industriesList').val(['']).trigger('change');
-
+       // $('#companiesList').val(['']).trigger('change');
+       // $('#industriesList').val(['']).trigger('change');
 
         var title = $(element).data('title');
-        var operationId = $(element).data('operationid');
+        var operationId = $('.inp-operation-name').attr('data-id');
         var addOperationAlertId = $(element).data('operationalertid');
         var title = $(element).data('title');
         var alertId = $(element).data('alertid');
@@ -303,32 +272,6 @@ $(document).ready(function () {
 
 //*** function for hide show text field ** /  
 
-//**  End function for hide show text field **** /         
-        if (alertType == 3 || alertType == 4 || alertType == 2) {
-            $.ajax({
-                url: "/admin/forms/getAlertData/" + alertId + '/' + alertType,
-                type: "POST",
-                data: {alertType: alertType},
-                contentType: false,
-                dataType: 'JSON',
-                cache: false,
-                processData: false,
-                success: function (responce)
-                {
-                    responce = responce.split(',');
-                    if (alertType == 2) {
-                        $('#staffList').val([responce]).trigger('change');
-                    }
-                    if (alertType == 3) {
-                        $('#companiesList').val(responce).trigger('change');
-                    }
-                    if (alertType == 4) {
-                        $('#industriesList').val([responce]).trigger('change');
-                    }
-
-                }
-            });
-        }
 
         $('.modelTitle').html(title);
         $('.addOperationId').val(operationId);
@@ -338,8 +281,8 @@ $(document).ready(function () {
         $('.alertTime').val(time);
         $('.alertTitle').val(alertTitle);
         $('.alertNotes').val(notes);
-        $('.alertType').val([alertType]).trigger('change');
-
+       // $('.alertType').val([alertType]).trigger('change');
+          $('.alertType').attr('disabled', 'readonly');
         $('.modelTitle').html(title);
         $('#operationId').val(operationId);
         $('#operationId').val([operationId]).trigger('change');
@@ -496,13 +439,37 @@ $(document).ready(function () {
         }
     }
 
-    // Submit Company Employee Form
+// check permit of the operation exit or not
+    $(document).on('change', '.permitOperations', function () {
+        var prmitId = $(this).val();
+       var operationId = $('#addOperationId').val();
+         $.ajax({
+                url: "/admin/operations/checkOperationPermit",
+                type: "POST",
+                data: {'prmitId':prmitId,'operationId':operationId},
+                  dataType: 'JSON',
+            cache: false,
+            async: false,
+                success: function (responce)
+                {
+                    if (responce.flag) {
+                        pNotifyError('Operation', responce.msg);
+
+                    } 
+                }
+            });
+        
+    });
+    
     $(document).on('click', '.btn-form-submit', function () {
         if ($('#operationId').valid()) {
             $('#operationId').submit();
             displayLoder();
         }
     });
+    
+    
+    
 
 });
 

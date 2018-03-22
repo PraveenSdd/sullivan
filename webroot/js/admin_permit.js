@@ -4,22 +4,46 @@
  */
 
 $(document).ready(function () {
+
 //** add Permit validation **\
     $("#frmPermit").validate({
         debug: false,
         errorClass: "authError",
         onkeyup: false,
         rules: {
-            title: "required",
+            "title": {
+                required: true,
+                maxlength: 120,
+                remote: {
+                    url: "/admin/forms/checkPermitUniqueName/",
+                    type: "post",
+                    beforeSend: function (xhr) {
+                        $('.loader-outer-block').css('display', 'none');
+                    },
+                    data: {
+                        title: function () {
+                            return $("#title").val();
+                        },
+                        id: function () {
+                            return $("#title").data('id');
+                        },
+                    },
+                },
+            },
+
         },
         messages: {
-            title: "Please enter title",
+            "title": {
+                required: "Please enter permit title",
+                maxlength: "Maximum characters are 150.",
+                remote: "Permit title is already exist."
+            },
         },
     });
 
 
-/** start   code for add agency value from admin permit */
-    $(".permitAgency").click(function () {
+    /** start   code for add agency value from admin permit */
+    $(document).on('click','.permitAgency',function () {
 
         if ($('#frmPermit').length == 1) {
             if ($('#frmPermit').valid()) {
@@ -37,12 +61,12 @@ $(document).ready(function () {
             openPermitAgencyModal($(this));
         }
     });
-    
-/*  Function:savePermitData()
- * Description: Add new permit from ajax
- * By @Ahsan Ahamad
- * Date : 12th Dec. 2017
- */
+
+    /*  Function:savePermitData()
+     * Description: Add new permit from ajax
+     * By @Ahsan Ahamad
+     * Date : 12th Dec. 2017
+     */
     function savePermitData() {
         $.ajax({
             url: "/admin/forms/savePermitData",
@@ -60,39 +84,61 @@ $(document).ready(function () {
                     $('.inp-permit-title').attr('data-id', responce.form_id);
                 } else {
                     pNotifyError('Permit', responce.msg);
-
+                    openPermitAgencyModal($(this));
                 }
 
             }
         });
     }
-    
-/*  Function:openPermitAgencyModal()
- * Description: Open agency model and set fiels value required data
- * By @Ahsan Ahamad
- * Date : 12th Dec. 2017
- */
+
+    /*  Function:openPermitAgencyModal()
+     * Description: Open agency model and set fiels value required data
+     * By @Ahsan Ahamad
+     * Date : 12th Dec. 2017
+     */
     function openPermitAgencyModal(element) {
         $('#formagencyid').val(' ');
         $('#categotyId').val(' ');
+        $('#agencyId').val('').trigger('change');
+        $('#contactPerson').val(' ').trigger('change');
         var title = $(element).data('title');
         var formId = $(element).data('formid');
         var categoryId = $(element).data('categotyid');
         var formagencyid = $(element).data('formagencyid');
-/* set permit id in add conact link*/
-$('.addConatctPerson').attr('data-permitId',formId);
-/* end code*/
+        var permitAgencyId = $(element).data('permitagencyid');
+        
+        if (formagencyid) {
+            $('#agencyId').val([formagencyid]).trigger('change');
+        }
+
+        $.ajax({
+            url: "/admin/forms/getPermitAgencyConatcPerson/" + permitAgencyId,
+            type: "POST",
+            data: {formagencyid: formagencyid,formId:formId},
+            contentType: false,
+            async: false,
+            dataType: 'JSON',
+            cache: false,
+            processData: false,
+            success: function (responce)
+            {
+                var responceArray = $.map(responce, function(el) { return el });
+               console.log(responceArray);
+                $('#contactPerson').val(responceArray).trigger('change');
+            }
+        });
+        /* set permit id in add conact link*/
+        $('.addConatctPerson').attr('data-permitId', formId);
+        /* end code*/
         $('.modelTitle').html(title);
         $('#addAgencyPermitId').val(formId);
+        $('#permitAgencyid').val(permitAgencyId);
         $('#formagencyid').val(formagencyid);
         $('#categotyId').val(categoryId);
-        $('#agencyId').val([categoryId]).trigger('change');
-        $('#contactPerson').val([' ']).trigger('change');
-          $('#contactPerson').attr('options',' ');
         $('#permitAddAgencyModel').modal('toggle');
 
     }
-/** add new agency related to permit */
+    /** add new agency related to permit */
 
     $("#permitAddAgency").on('submit', function (e) {
         e.preventDefault();
@@ -116,7 +162,7 @@ $('.addConatctPerson').attr('data-permitId',formId);
 
                     } else {
                         pNotifyError('Agency', responce.msg);
-                        $('#permitAddAgencyModel').modal('toggle');
+                       // $('#permitAddAgencyModel').modal('toggle');
                     }
 
                 }
@@ -124,11 +170,11 @@ $('.addConatctPerson').attr('data-permitId',formId);
         }
     });
 
-/*  Function:getReleatedAgency()
- * Description: Get all agency related to the permit
- * By @Ahsan Ahamad
- * Date : 12th Dec. 2017
- */
+    /*  Function:getReleatedAgency()
+     * Description: Get all agency related to the permit
+     * By @Ahsan Ahamad
+     * Date : 12th Dec. 2017
+     */
     function getReleatedAgency(permit_id) {
         $.ajax({
             url: "/admin/forms/getReleatedAgency/" + permit_id,
@@ -144,27 +190,25 @@ $('.addConatctPerson').attr('data-permitId',formId);
             }
         });
     }
-/* check agency validation */
+    /* check agency validation */
     $("#permitAddAgency").validate({
         debug: false,
         errorClass: "authError",
         onkeyup: false,
         rules: {
-            "category_id[]": "required",
-            "agency_conatct_id": "required",
+            "agency_id": "required",
         },
         messages: {
-            "category_id[]": "Please select agency",
-            "agency_conatct_id": "Please select conatct person",
+            "agency_id": "Please select agency",
 
         },
     });
 
-/*@desctiption: open Operation model on click add/edit operation button.
- * @Date: 14th Jan 2018
- * @by: Ahsan Ahamad
- */
- $(".permitOperation").click(function () {
+    /*@desctiption: open Operation model on click add/edit operation button.
+     * @Date: 14th Jan 2018
+     * @by: Ahsan Ahamad
+     */
+    $(document).on("click",".permitOperation",function () {
 
         if ($('#frmPermit').length == 1) {
             if ($('#frmPermit').valid()) {
@@ -183,28 +227,31 @@ $('.addConatctPerson').attr('data-permitId',formId);
         }
     });
 
-/* @Function:openPermitAgencyModal()
- * @Description: Open operation model and set fiels value required data
- * @By @Ahsan Ahamad
- * @Date : 14th Jan. 2018
- */
+    /* @Function:openPermitAgencyModal()
+     * @Description: Open operation model and set fiels value required data
+     * @By @Ahsan Ahamad
+     * @Date : 14th Jan. 2018
+     */
     function openPermitOperationModal(element) {
-        $('#permitId').val(' ');
-        $('#permitOperationId').val(' ');
-        $('#operationId').val(' ');
+
+
         var title = $(element).data('title');
         var permitId = $(element).data('permitid');
         var permitOperationId = $(element).data('id');
         var operationId = $(element).data('operationid');
+        $('.permitId').val(' ');
+        $('#permitOperationId').val(' ');
+        $('#operationId').val(' ');
+
         $('.modelTitle').html(title);
-        $('#permitId').val(permitId);
+        $('.permitId').val(permitId);
         $('#permitOperationId').val(permitOperationId);
         $('.operationId').val([operationId]).trigger('change');
         $('#permitAddOperationModel').modal('toggle');
 
     }
-    
-    
+
+
     /************************** add new agency related to permit **********************/
 
     $("#permitAddOperation").on('submit', function (e) {
@@ -236,11 +283,11 @@ $('.addConatctPerson').attr('data-permitId',formId);
         }
     });
 
-/*  Function:getReleatedOperation()
- * Description: Get all agency related to the permit
- * By @Ahsan Ahamad
- * Date : 12th Dec. 2017
- */
+    /*  Function:getReleatedOperation()
+     * Description: Get all agency related to the permit
+     * By @Ahsan Ahamad
+     * Date : 12th Dec. 2017
+     */
     function getReleatedOperation(permitId) {
         $.ajax({
             url: "/admin/forms/getReleatedOperation/" + permitId,
@@ -256,9 +303,9 @@ $('.addConatctPerson').attr('data-permitId',formId);
             }
         });
     }
-    
 
-/* check agency validation */
+
+    /* check agency validation */
     $("#permitAddOperation").validate({
         debug: false,
         errorClass: "authError",
@@ -272,8 +319,8 @@ $('.addConatctPerson').attr('data-permitId',formId);
         },
     });
 
-/** start code for add forms value from admin permit view popup */
-    $(".permitFormsModel").click(function () {
+    /** start code for add forms value from admin permit view popup */
+    $(document).on("click",".permitFormsModel",function () {
 
         if ($('#frmPermit').length == 1) {
             if ($('#frmPermit').valid()) {
@@ -292,34 +339,40 @@ $('.addConatctPerson').attr('data-permitId',formId);
             openPermitFormModal($(this));
         }
     });
-    
-/*  Function:openPermitFormModal()
- * Description: Function use for open popup model for upload form related to permit
- * By @Ahsan Ahamad
- * Date : 12th Dec. 2017
- */
+
+    /*  Function:openPermitFormModal()
+     * Description: Function use for open popup model for upload form related to permit
+     * By @Ahsan Ahamad
+     * Date : 12th Dec. 2017
+     */
     function openPermitFormModal(element) {
         $('#documentid').val('');
         $('#form_name1').val('');
+       
         var title = $(element).data('title');
         var formId = $(element).data('formid');
+        var formname = $(element).data('formname');
         var documentId = $(element).data('documentid');
+
+         $('#form_name1').val(formname);
+         $('.modelTitle').html(title);
+        $('#addFormsformId').val(formId);
+        $('#documentid').val(documentId);
         if (documentId > 0) {
             $('.formDocument').removeClass('required');
-        }else{
+             $('#form_document1').val(' ');
+        $('#form_document_required1').val(' ');
+        } else {
             $('#permitFormsModel').modal('toggle');
 
         }
-        var formname = $(element).data('formname');
-        $('.modelTitle').html(title);
-        $('#form_name1').val(formname);
-        $('#addFormsformId').val(formId);
-        $('#documentid').val(documentId);
+        
+        
 
 
     }
-    
-/*  add new form related to permit **/
+
+    /*  add new form related to permit **/
 
     $("#frmPermitForm").on('submit', function (e) {
         e.preventDefault();
@@ -350,11 +403,11 @@ $('.addConatctPerson').attr('data-permitId',formId);
         }
     });
 
-/*  Function:getReleatedForms()
- * Description: Function use for get all form related to permit
- * By @Ahsan Ahamad
- * Date : 12th Dec. 2017
- */
+    /*  Function:getReleatedForms()
+     * Description: Function use for get all form related to permit
+     * By @Ahsan Ahamad
+     * Date : 12th Dec. 2017
+     */
 
     function getReleatedForms(formId) {
         $.ajax({
@@ -373,24 +426,31 @@ $('.addConatctPerson').attr('data-permitId',formId);
             }
         });
     }
-/*  validation of the permit upload form*/
+    /*  validation of the permit upload form*/
     $("#frmPermitForm").validate({
         debug: false,
         errorClass: "authError",
         onkeyup: false,
         rules: {
-            date: "required",
+            "forms[form_name][]": {
+                required: true,
+                maxlength: 40,
+            },
+
         },
         messages: {
-            date: "Please select date",
+            "forms[form_name][]": {
+                required: "Please enter name",
+                maxlength: "Maximum characters are 40"
+            },
 
         },
     });
 
 
-/* start code for add forms Documents value from admin permit view popup **/
+    /* start code for add forms Documents value from admin permit view popup **/
 
-    $(".permitAttachment").click(function () {
+    $(document).on('click',".permitAttachment",function () {
         if ($('#frmPermit').length == 1) {
             if ($('#frmPermit').valid()) {
                 var formId = $('.inp-permit-title').attr('data-id');
@@ -402,28 +462,33 @@ $('.addConatctPerson').attr('data-permitId',formId);
                     savePermitData();
                     openPermitAttchmentModal($(this));
                 }
- 
+
             }
         } else {
             openPermitAttchmentModal($(this));
         }
 
     });
-    
-/*  Function:openPermitAttchmentModal()
- * Description: Function use for open popup model for uploaded form related attach file related to permit
- * By @Ahsan Ahamad
- * Date : 13th Dec. 2017
- */
+
+    /*  Function:openPermitAttchmentModal()
+     * Description: Function use for open popup model for uploaded form related attach file related to permit
+     * By @Ahsan Ahamad
+     * Date : 13th Dec. 2017
+     */
 
     function openPermitAttchmentModal(element) {
         $('#formAttachmentId').val('');
         var title = $(element).data('title');
         var formId = $(element).data('formid');
         var formAttachmentId = $(element).data('documentid');
+        var mandatory = $(element).data('mandatory');
+        if(mandatory == 1){
+             $('#form_document_required1').attr( 'checked',true);
+           
+        }
         if (formAttachmentId > 0) {
             $('.attachment').removeClass('required');
-        }else{
+        } else {
             $('#permitDocumentsModel').modal('toggle');
 
         }
@@ -434,7 +499,7 @@ $('.addConatctPerson').attr('data-permitId',formId);
         $('#form-attachment-1-document-name').val(documentname);
 
     }
-/* add new permit documnet */
+    /* add new permit documnet */
     $("#frmPermitDocuments").on('submit', function (e) {
         e.preventDefault();
         if ($('#frmPermitDocuments').valid()) {
@@ -452,7 +517,7 @@ $('.addConatctPerson').attr('data-permitId',formId);
                         pNotifySuccess('Document', responce.msg);
                         $('#permitDocumentsModel').modal('toggle');
                         getReleatedFormAttachment(responce.form_id);
-                       
+
                     } else {
                         pNotifyError('Document', responce.msg);
                         $('#permitDocumentsModel').modal('toggle');
@@ -464,11 +529,11 @@ $('.addConatctPerson').attr('data-permitId',formId);
         }
     });
 
-/*  Function:getReleatedFormAttachment()
- * Description: Function use for get form related attach file related to permit
- * By @Ahsan Ahamad
- * Date : 12th Dec. 2017
- */
+    /*  Function:getReleatedFormAttachment()
+     * Description: Function use for get form related attach file related to permit
+     * By @Ahsan Ahamad
+     * Date : 12th Dec. 2017
+     */
     function getReleatedFormAttachment(formId) {
         $.ajax({
             url: "/admin/forms/getReleatedFormAttachment/" + formId,
@@ -486,25 +551,29 @@ $('.addConatctPerson').attr('data-permitId',formId);
             }
         });
     }
-/* add /edit document related to permit */
+    /* add /edit document related to permit */
     $("#frmPermitDocuments").validate({
         debug: false,
         errorClass: "authError",
         onkeyup: false,
         rules: {
-            "form_attachment[document_name]": "required",
-            date: "required",
+            "form_attachment[document_name][]": {
+                required: true,
+                maxlength: 40,
+            },
         },
         messages: {
-            date: "Please select date",
-            "form_attachment[document_name]": "Please enter document name",
+            "form_attachment[document_name][]": {
+                required: "Please enter document name",
+                maxlength: "Maximum characters are 40"
+            },
+        }
 
-        },
     });
 
-/** start   code for add deadline value from admin permit **/
+    /** start   code for add deadline value from admin permit **/
 
-    $(".permitDeadline").click(function () {
+    $(document).on("click",".permitDeadline",function () {
         if ($('#frmPermit').length == 1) {
             if ($('#frmPermit').valid()) {
                 var formId = $('.inp-permit-title').attr('data-id');
@@ -523,12 +592,12 @@ $('.addConatctPerson').attr('data-permitId',formId);
         }
 
     });
-    
-/*  Function:openPermitDeadlineModal()
- * Description: Function use for open deadline model related to permit
- * By @Ahsan Ahamad
- * Date : 13th Dec. 2017
- */
+
+    /*  Function:openPermitDeadlineModal()
+     * Description: Function use for open deadline model related to permit
+     * By @Ahsan Ahamad
+     * Date : 13th Dec. 2017
+     */
 
     function openPermitDeadlineModal(element) {
         var title = $(element).data('title');
@@ -536,7 +605,7 @@ $('.addConatctPerson').attr('data-permitId',formId);
         $('#formDeadlineId').val('');
         $('#date').val('');
         $('#time').val('');
-        var formDeadlineId = $(element).data('formdeadlineid');
+        var formDeadlineId = $(element).data('deadlineid');
         var date = $(element).data('date');
         var time = $(element).data('time');
         $('.modelTitle').html(title);
@@ -546,7 +615,7 @@ $('.addConatctPerson').attr('data-permitId',formId);
         $('#time').val(time);
         $('#permitDeadlinesModel').modal('toggle');
     }
-/* add new deadline related to permit */
+    /* add new deadline related to permit */
     $("#permitdeadline").on('submit', function (e) {
         var documentId = $('#form_documents_id').val();
         e.preventDefault();
@@ -575,11 +644,11 @@ $('.addConatctPerson').attr('data-permitId',formId);
             });
         }
     });
-/*  Function:getReleatedDeadline()
- * Description: Function use for get deadline related to permit
- * By @Ahsan Ahamad
- * Date : 13th Dec. 2017
- */
+    /*  Function:getReleatedDeadline()
+     * Description: Function use for get deadline related to permit
+     * By @Ahsan Ahamad
+     * Date : 13th Dec. 2017
+     */
     function getReleatedDeadline(formId) {
         $.ajax({
             url: "/admin/forms/getReleatedDeadline/" + formId,
@@ -597,7 +666,7 @@ $('.addConatctPerson').attr('data-permitId',formId);
             }
         });
     }
-/* validation deadline form related to permit*/
+    /* validation deadline form related to permit*/
     $("#permitdeadline").validate({
         debug: false,
         errorClass: "authError",
@@ -610,11 +679,11 @@ $('.addConatctPerson').attr('data-permitId',formId);
 
         },
     });
-    
-/* start code for add forms Alert value from admin permit view popup ***/
 
-  
-    $(".permitAlert").click(function () {
+    /* start code for add forms Alert value from admin permit view popup ***/
+
+
+    $(document).on("click",".permitAlert",function () {
 
         if ($('#frmPermit').length == 1) {
             if ($('#frmPermit').valid()) {
@@ -623,44 +692,46 @@ $('.addConatctPerson').attr('data-permitId',formId);
                     openPermitAlertModal($(this));
 
                 } else {
-/* code for saving data*/
+                    /* code for saving data*/
                     savePermitData();
                     openPermitAlertModal($(this));
                 }
 
             }
         } else {
-            openPermitAlertModal();
+            openPermitAlertModal($(this));
         }
 
     });
-    
-/*  Function:getReleatedDeadline()
- * Description: Function use for open alert model related to permit
- * By @Ahsan Ahamad
- * Date : 13th Dec. 2017
- */
+
+    /*  Function:getReleatedDeadline()
+     * Description: Function use for open alert model related to permit
+     * By @Ahsan Ahamad
+     * Date : 13th Dec. 2017
+     */
 
     function openPermitAlertModal(element) {
-        
+
         var title = $(element).data('title');
         var formId = $(element).data('formid');
         var alertId = $(element).data('alertid');
         var alertPermitId = $(element).data('formalertid');
-        if(alertPermitId){
-            
-        }else{
-        $('#permitAlertModel').modal('toggle');
-
+        if (alertPermitId > 0) {
+        } else {
+            $('#permitAlertModel').modal('toggle');
         }
         var date = $(element).data('date');
+
         var time = $(element).data('time');
         var alertType = $(element).data('alerttype');
         var alertTitle = $(element).data('alerttitle');
         var notes = $(element).data('notes');
-        
-/**function for hide show text field */ 
-       
+
+        $('#staffList').val(' ').trigger('change');
+        $('#companiesList').val(' ').trigger('change');
+        $('#industriesList').val(' ').trigger('change');
+        /**function for hide show text field */
+
         if (alertType == 3 || alertType == 4 || alertType == 2) {
             $.ajax({
                 url: "/admin/forms/getAlertData/" + alertId + '/' + alertType,
@@ -674,13 +745,13 @@ $('.addConatctPerson').attr('data-permitId',formId);
                 {
                     responce = responce.split(',');
                     if (alertType == 2) {
-                        $('#staffList').val([responce]).trigger('change');
+                        $('#staffList').val(responce).trigger('change');
                     }
                     if (alertType == 3) {
                         $('#companiesList').val(responce).trigger('change');
                     }
                     if (alertType == 4) {
-                        $('#industriesList').val([responce]).trigger('change');
+                        $('#industriesList').val(responce).trigger('change');
                     }
 
                 }
@@ -689,7 +760,7 @@ $('.addConatctPerson').attr('data-permitId',formId);
 
         $('.modelTitle').html(title);
         $('#alertFormId').val(formId);
-        
+
         $('#alertId').val(alertId);
         $('#alertPermitId').val(alertPermitId);
         $('.alertDate').val(date);
@@ -698,7 +769,7 @@ $('.addConatctPerson').attr('data-permitId',formId);
         $('.alertNotes').val(notes);
         $('.alertType').val([alertType]).trigger('change');
     }
-/* add new alert related to permit*/
+    /* add new alert related to permit*/
     $("#frmPermitAlert").on('submit', function (e) {
         e.preventDefault();
         if ($('#frmPermitAlert').valid()) {
@@ -715,9 +786,7 @@ $('.addConatctPerson').attr('data-permitId',formId);
                     if (responce.flag) {
                         pNotifySuccess('Alert', responce.msg);
                         $('#permitAlertModel').modal('toggle');
-                        getReleatedFormAlerts(responce.form_id);
-
-
+                        getReleatedFormAlerts(responce.permit_id);
                     } else {
                         pNotifyError('Alert', responce.msg);
                         $('#permitAlertModel').modal('toggle');
@@ -728,12 +797,12 @@ $('.addConatctPerson').attr('data-permitId',formId);
             });
         }
     });
-    
-/*  Function:getReleatedFormAlerts()
- * Description: Function use for get alert related to permit
- * By @Ahsan Ahamad
- * Date : 12th Dec. 2017
- */
+
+    /*  Function:getReleatedFormAlerts()
+     * Description: Function use for get alert related to permit
+     * By @Ahsan Ahamad
+     * Date : 12th Dec. 2017
+     */
     function getReleatedFormAlerts(formId) {
         $.ajax({
             url: "/admin/forms/getReleatedFormAlert/" + formId,
@@ -751,7 +820,7 @@ $('.addConatctPerson').attr('data-permitId',formId);
             }
         });
     }
-/* validation alert form related to permit*/
+    /* validation alert form related to permit*/
     $("#frmPermitAlert").validate({
         debug: false,
         errorClass: "authError",
@@ -775,26 +844,26 @@ $('.addConatctPerson').attr('data-permitId',formId);
     });
 
 
-/* code for on change alert type disable menus*/
-    $(".alertType").on('change', function () {
+    /* code for on change alert type disable menus*/
+    $(document).on('change',".alertType", function () {
         var id = $(".alertType").val();
         alertForm(id);
     });
 
     function alertForm(id) {
-/*  id 3 for company */
+        /*  id 3 for company */
         if (id == 3) {
             $('#industriesList').attr('disabled', 'disabled');
             $('#staffList').attr('disabled', 'disabled');
             $('#companiesList').attr('disabled', false);
         }
-/*  id 4 for industry */
+        /*  id 4 for industry */
         else if (id == 4) {
             $('#industriesList').attr('disabled', false);
             $('#companiesList').attr('disabled', 'disabled');
             $('#staffList').attr('disabled', 'disabled');
         }
-/*  id 4 for admin staff */
+        /*  id 4 for admin staff */
         else if (id == 2) {
             $('#staffList').attr('disabled', false);
             $('#companiesList').attr('disabled', 'disabled');
@@ -806,61 +875,44 @@ $('.addConatctPerson').attr('data-permitId',formId);
         }
     }
 
- 
-/* code for get agency/category conatct person on select agency */
- $(document).on('change',".agencyId",function() {
-     var categoryId = $(this).val();
-         $('.addConatctPerson').attr('data-categoryId',categoryId);
-         
-     if (categoryId) {
+
+    /* code for get agency/category conatct person on select agency */
+    $(document).on('change', ".agencyId", function () {
+        var categoryId = $(this).val();
+        $('.addConatctPerson').attr('data-categoryId', categoryId);
+        
+        getAgencyContact(categoryId);
+
+    });
+
+
+    function getAgencyContact(categoryId) {
+        if (categoryId) {
             $.ajax({
                 url: "/admin/forms/getAgencyContacts",
                 type: "Post",
                 dataType: 'html',
+                async: false,
                 data: {categoryId: categoryId},
                 success: function (response) {
                     if (response) {
-                         $('.contactPerson').html(response);
-                         $('.permitId').val(categoryId);
-                       
-                       
-                    }
-                }
-            });
-        } else {
-            $("#ProductCategoryId").html();
-        }
- });
-
-/* code for get agency contact persion details  */
-
-$('.viewContact').on('click',function(){
-     var personId = $(this).data('id');
-     if (personId) {
-            $.ajax({
-                url: "/admin/categories/getContactPerson/"+personId,
-                type: "Post",
-                dataType: 'html',
-                data: {personId: personId},
-                success: function (response) {
-                    if (response) {
                         $('.contactPerson').html(response);
-                        $('#viewConatcPerson').modal('toggle');
-                       
+                        $('.permitId').val(categoryId);
+
+
                     }
                 }
             });
         } else {
             $("#ProductCategoryId").html();
         }
-});
+    }
 
 
 
+    /* start code for add Permit Instruction value from admin permit view popup **/
 
-/* start code for add Permit Instruction value from admin permit view popup **/
-
-    $(".PermiInstruction").click(function () {
+    $(document).on("click",".PermiInstruction",function () {
         if ($('#frmPermit').length == 1) {
             if ($('#frmPermit').valid()) {
                 var formId = $('.inp-permit-title').attr('data-id');
@@ -872,32 +924,42 @@ $('.viewContact').on('click',function(){
                     savePermitData();
                     openPermitInstrctionModal($(this));
                 }
- 
+
             }
         } else {
             openPermitInstrctionModal($(this));
         }
 
     });
-    
-/*  Function:openPermitAttchmentModal()
- * Description: Function use for open popup model for uploaded form related attach file related to permit
- * By @Ahsan Ahamad
- * Date : 13th Dec. 2017
- */
+
+    /*  Function:openPermitAttchmentModal()
+     * Description: Function use for open popup model for uploaded form related attach file related to permit
+     * By @Ahsan Ahamad
+     * Date : 13th Dec. 2017
+     */
 
     function openPermitInstrctionModal(element) {
-        $('#permitInstructionId').val('');
+        $('#permitInstructionId').val(' ');
         $('#permitId').val('');
         var title = $(element).data('title');
         var formId = $(element).data('formid');
-        
-         $('#permitId').val(formId);
+        var permitAgencyId = $(element).data('permitinstructionid');
+        var instructionTitle = $(element).data('instructiontitle');
+        console.log(permitAgencyId);
+        if (permitAgencyId > 0) {            
+            $('#filePath').attr('data-is-required', '0');
+        } else {            
+            $('#filePath').attr('data-is-required', '1');
+        }
+        $('#permitId').val(formId);
+        $('#instructionTitle').val(instructionTitle);
+        $('#permitInstructionId').val(permitAgencyId);
+
         $('.modelTitle').html(title);
-         //$('#permitInstructionsModel').modal('toggle');
+        $('#permitInstructionsModel').modal('toggle');
 
     }
-/* add new permit documnet */
+    /* add new permit documnet */
     $("#frmPermitInstruction").on('submit', function (e) {
         e.preventDefault();
         if ($('#frmPermitInstruction').valid()) {
@@ -915,7 +977,7 @@ $('.viewContact').on('click',function(){
                         pNotifySuccess('Instruction', responce.msg);
                         $('#permitInstructionsModel').modal('toggle');
                         getPermitInstructions(responce.permit_id);
-                       
+
                     } else {
                         pNotifyError('Instruction', responce.msg);
                         $('#permitInstructionsModel').modal('toggle');
@@ -927,11 +989,11 @@ $('.viewContact').on('click',function(){
         }
     });
 
-/*  Function:getReleatedFormAttachment()
- * Description: Function use for get form related attach file related to permit
- * By @Ahsan Ahamad
- * Date : 12th Dec. 2017
- */
+    /*  Function:getReleatedFormAttachment()
+     * Description: Function use for get form related attach file related to permit
+     * By @Ahsan Ahamad
+     * Date : 12th Dec. 2017
+     */
     function getPermitInstructions(permitId) {
         $.ajax({
             url: "/admin/forms/getPermitInstructions/" + permitId,
@@ -947,17 +1009,37 @@ $('.viewContact').on('click',function(){
             }
         });
     }
-/* add /edit document related to permit */
+    /* add /edit document related to permit */
+    $.validator.addMethod("checkAddEditUploading", function (value, element, params) {        
+        var isRequired = $(element).attr('data-is-required');
+        var result = true;                
+        if (isRequired == 1 && value == '') {
+            result = false;
+        }
+        return result;
+    }, function (params, element) {
+        return params.msg;
+    });
     $("#frmPermitInstruction").validate({
         debug: false,
         errorClass: "authError",
         onkeyup: false,
         rules: {
-            "title": "required",
+            "title": {
+                required: true,
+                maxlength: 40,
+            },
+
+            "file_path": {
+                "checkAddEditUploading": {msg: 'Please upload instruction file'}
+            },
         },
         messages: {
-            title: "Please enter title",
-
+            "title": {
+                required: "Please enter title",
+                maxlength: "Maximum characters are 40"
+            },
+            file_path: 'Please upload instrcution file'
         },
     });
 

@@ -5,7 +5,7 @@
             <div  class="hdd-brdr"><h3>Registration</h3></div>
             <div class="signup-bx1-in">
                 <?php if(!empty($userEmail)): ?>
-                    <p class="font-size-18">Registration is successfully completed. We have sent a email on <strong><?php echo $userEmail; ?></strong> for varification. Please verify your account.
+                    <p class="font-size-18">Registration is successfully completed. We have sent a email on <strong><?php echo $userEmail; ?></strong> for Verification. Please verify your account.
                     <?php echo $this->Html->link('Resend Verification Email',['controller'=>'users','action'=>'resendVerification',$this->Encryption->encode($userId)],array('escape' => false)); ?>
                     </p>
                     <?php if($registationType == 'company' && $registrationStatus != 'done'): ?>

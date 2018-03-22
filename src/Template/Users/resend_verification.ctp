@@ -6,7 +6,7 @@
             <div class="signup-bx1-in">
                 <?php if(!empty($verificationData)): ?>                    
                     <?php if($responseFlag): ?>
-                        <p class="font-size-18">We have re-sent a email on <strong><?php echo $verificationData->email; ?></strong> for varification. Please verify your account.
+                        <p class="font-size-18">We have re-sent a email on <strong><?php echo $verificationData->email; ?></strong> for Verification. Please verify your account.
                         <?php //echo $this->Html->link('Resend Verification Email',['controller'=>'users','action'=>'resendVerification',$this->Encryption->encode($userId)],array('escape' => false)); ?>
                         </p>
                     <?php else: ?>    

@@ -9,8 +9,8 @@ $(function () {
     $(".inp-phone").mask("999-999-9999");
     $(".inp-card-expiry").mask("99/9999");
 
+// validation for staff and admin company profile or admin 
 
-// validation for staff and admin company profile or admin   
     $("#addStaff").validate({
         debug: false,
         errorClass: "authError",
@@ -120,10 +120,30 @@ $(function () {
             },
 
         },
-        submitHandler: function (form) {
+        /*submitHandler: function (form) {
             form.submit();
-        }
+        }*/
     });
+
+    $(".confirmBeforeSave").on('click',function(){
+        
+        var permissionLevel = $(".sel-level").val();
+         if(permissionLevel == 1){
+        
+        //$("#confirmMessage").html("Are you sure you want allow all permission to this user ?");
+        ecoConfirm("Are you sure you want allow all permission to this user ?",function
+                ecoAlert(findreturn) {
+                if (findreturn == true) {
+                    $("#addStaff").submit();
+                }else{
+                    return false;
+                }
+          });
+         }else{
+           $("#addStaff").submit();
+         }
+        return false;
+    })
 
 });
 

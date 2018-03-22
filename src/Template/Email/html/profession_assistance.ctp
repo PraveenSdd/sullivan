@@ -7,7 +7,7 @@
                                 <tr>
                                     <td>
                                         <img src="tick.png" alt="" />
-                                        <h2 style="font-family:'Open Sans', sans-serif;font-weight:600;color:#64646e;font-size:18px;margin-bottom:0;margin-top:5px;">Successfully Registered!</h2>
+                                        <h2 style="font-family:'Open Sans', sans-serif;font-weight:600;color:#64646e;font-size:18px;margin-bottom:0;margin-top:5px;">Successfully !</h2>
                                     </td>
                                 </tr>
                                 <tr>

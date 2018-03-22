@@ -6,8 +6,11 @@
         <div class="box box-primary">
             <div class="box-header with-border">
                 <br>
+
                 <!-- general form elements -->
-           <?php  echo $this->Form->create('Staff', array('url' => array('controller' => 'staffs', 'action' => 'add'),'id'=>'addStaff',' method'=>'post','class'=>'form-horizontal')); ?>
+           <?php  
+           $officeBaseAddress = $this->DefaultAddress->getAddress();
+           echo $this->Form->create('Staff', array('url' => array('controller' => 'staffs', 'action' => 'add'),'id'=>'addStaff',' method'=>'post','class'=>'form-horizontal')); ?>
                 <div class="col-md-12">
                     <div class="box-body">                    
 
@@ -79,6 +82,8 @@
                                                  ));  
                                               ?>
                                 </div>
+                                <label id="phone-error" class="authError" for="phone" style="display:none;">Please enter phone number</label>
+
 
                             </div>
                         </div>
@@ -96,14 +101,14 @@
 
                             </div>
                             <div class="col-sm-6">
-                                <label for="title" class=" control-label">Level<span class="text-danger">*</span> </label>
+                                <label for="title" class=" control-label">Permission Level<span class="text-danger">*</span> </label>
                                 <?php 
                                     echo $this->Form->input('permission_id', array(
                                        'type' => 'select',
                                        'options' => $permissionsList,
                                         'empty'=>'Please select level',
                                         'label' => false,
-                                        'class'=> 'form-control inp-add-state sel-add-state',
+                                        'class'=> 'form-control sel-level',
                                         
                                         'label' => false,
 
@@ -123,6 +128,7 @@
                                         'rows'=>"2",
                                          'maxlength'=>80, 
                                          'label' => false,
+                                         'value'=> $officeBaseAddress['address1'],
 
                                        ));  
                                     ?>
@@ -137,6 +143,7 @@
                                         'rows'=>"2",
                                          'maxlength'=>80, 
                                          'label' => false,
+                                         'value'=> $officeBaseAddress['address2'],
 
                                        ));  
                                     ?>
@@ -153,6 +160,7 @@
                                         'label' => 'false',
                                          'maxlength'=>40,
                                          'label' => false,
+                                         'value'=> $officeBaseAddress['city'],
 
                                        ));  
                                     ?>
@@ -168,8 +176,9 @@
                                         'label' => false,
                                         'class'=> 'form-control inp-add-state sel-add-state',
                                         'data-add-count'=>'1',
-                                         'default'=>154,
-                                        'label' => false,
+                                         'default'=>$officeBaseAddress['state_id'],
+                                         'label' => false,
+
 
                                         ));
                                 ?>
@@ -186,39 +195,13 @@
                                         'label' => 'false',
                                          'maxlength'=>10, 
                                          'label' => false,
+                                         'value'=> $officeBaseAddress['zipcode'], 
 
                                        ));  
                                     ?>
 
                             </div>
-                            <div class="col-sm-6">
-
-                                <div class="phone-block padding-top-5" >
-                                    <label>Phone Number </label>
-                                     <?php echo $this->Form->input('Address.phone', array(
-                                                'placeholder'=>'Phone number ',
-                                                'class'=>'form-control inp-phone inp-address_phone' ,
-                                                'label' => false,
-                                                'div'=>false,
-                                                'legend' => false
-                                                 ));  
-                                    ?>
-                                </div>
-                                <div class="phone-extension-block padding-top-5">
-                                    <label> Extension </label>
-
-                                    <?php echo $this->Form->input('Address.phone_extension', array(
-                                                'class'=>'form-control phone-extension-address inp-add_address-country_code',
-                                                'id'=>'phone_extension',
-                                                 'placeholder'=>'Extension ',
-                                                 'maxlength'=>4,
-                                                'div'=>false,
-                                                'legend' => false,
-                                        'label' => false,
-                                                 ));  
-                                              ?>
-                                </div>
-                            </div>
+                         
 
                         </div>
                     </div>
@@ -226,7 +209,7 @@
 
                     <div class="box-footer button-form-sub">
                     <?php echo $this->Html->link('Cancel',['controller'=>'staffs','action'=>'index'],array('class'=>'btn btn-warning','escape' => false)); ?> &nbsp;&nbsp;
- <?php echo $this->Form->button('Submit', array('type'=>'submit','class'=>'btn btn-primary')); ?>
+ <?php echo $this->Form->button('Submit', array('type'=>'submit','class'=>'btn btn-primary confirmBeforeSave')); ?>
                     </div>
 
              <?php echo $this->Form->end();?>
